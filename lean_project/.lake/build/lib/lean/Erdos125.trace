@@ -1,0 +1,33 @@
+{"synthetic": false,
+ "schemaVersion": "2025-09-10",
+ "outputs":
+ {"o": ["b0ef13f6dd389844.olean"],
+  "m": false,
+  "i": "6090c45959422ba9.ilean",
+  "c": "463de5ef81670dd1.c"},
+ "log":
+ [{"message":
+   ".> LEAN_PATH=/Users/hermes/.hermes/projects/erdos_125/lean_project/.lake/packages/Cli/.lake/build/lib/lean:/Users/hermes/.hermes/projects/erdos_125/lean_project/.lake/packages/batteries/.lake/build/lib/lean:/Users/hermes/.hermes/projects/erdos_125/lean_project/.lake/packages/Qq/.lake/build/lib/lean:/Users/hermes/.hermes/projects/erdos_125/lean_project/.lake/packages/aesop/.lake/build/lib/lean:/Users/hermes/.hermes/projects/erdos_125/lean_project/.lake/packages/proofwidgets/.lake/build/lib/lean:/Users/hermes/.hermes/projects/erdos_125/lean_project/.lake/packages/importGraph/.lake/build/lib/lean:/Users/hermes/.hermes/projects/erdos_125/lean_project/.lake/packages/LeanSearchClient/.lake/build/lib/lean:/Users/hermes/.hermes/projects/erdos_125/lean_project/.lake/packages/plausible/.lake/build/lib/lean:/Users/hermes/.hermes/projects/erdos_125/lean_project/.lake/packages/mathlib/.lake/build/lib/lean:/Users/hermes/.hermes/projects/erdos_125/lean_project/.lake/build/lib/lean /Users/hermes/.elan/toolchains/leanprover--lean4---v4.34.0-rc2/bin/lean /Users/hermes/.hermes/projects/erdos_125/lean_project/Erdos125.lean -o /Users/hermes/.hermes/projects/erdos_125/lean_project/.lake/build/lib/lean/Erdos125.olean -i /Users/hermes/.hermes/projects/erdos_125/lean_project/.lake/build/lib/lean/Erdos125.ilean -c /Users/hermes/.hermes/projects/erdos_125/lean_project/.lake/build/ir/Erdos125.c --setup /Users/hermes/.hermes/projects/erdos_125/lean_project/.lake/build/ir/Erdos125.setup.json --json",
+   "level": "trace"}],
+ "inputs":
+ [["deps",
+   [["erdos125/Erdos125:extraDep",
+     [["@erdos125:extraDep", "00000000000006bb"]]],
+    ["imports",
+     [["Mathlib transitive imports (legacy)", "fcb819c9fd5f3d5b"],
+      ["Mathlib:importAllArts", "6f1322cf474daf1d"]]]]],
+  ["libs",
+   [["import dynlibs", "00000000000006bb"],
+    ["package external libraries", "00000000000006bb"],
+    ["module dynlibs", "00000000000006bb"],
+    ["module plugins", "00000000000006bb"]]],
+  ["Lean 4.34.0, commit 6a10ac8c22beadecabdbb0919c2b50214762f91d",
+   "365244c167ac8c1d"],
+  ["/Users/hermes/.hermes/projects/erdos_125/lean_project/Erdos125.lean",
+   "a9b19d81e981e2d1"],
+  ["options", "00000000000006bb"],
+  ["isModule: false", "feefd2a0d3a1847e"],
+  ["Module.name: Erdos125", "cc088680cf4e65d8"],
+  ["Package.id?: (some erdos125)", "2e0ff7adfd4a0565"],
+  ["Module.leanArgs: #[]", "00000000000006bb"]],
+ "depHash": "b7b9d7ea521799a6"}
