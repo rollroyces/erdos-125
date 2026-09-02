@@ -1,0 +1,6 @@
+# Lean build artifacts
+.lean/
+mathlib_build/
+lean_project/.lake/
+*.olean
+*.ilean
