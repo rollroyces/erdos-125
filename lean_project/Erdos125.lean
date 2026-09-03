@@ -34,23 +34,36 @@ theorem inA_3m_2_eq_false : ∀ m : Nat, inA (3 * m + 2) = false := by
   have h_neg : ¬ (2 < 2) := by omega
   simp [h_neg]
 
--- countA using foldl (allows native_decide on examples)
+-- countA using foldl (native_decide can evaluate)
 def countA (N : Nat) : Nat :=
   (List.range N).foldl (fun acc n => if inA n then acc + 1 else acc) 0
 
 -- KEY LEMMA: countA (3 * N) = 2 * countA N
--- The structural argument:
--- {n in [0, 3N) : inA n} = {3m : m in [0,N), inA m} ∪ {3m+1 : m in [0,N), inA m}
--- (the 3m+2 elements are not in A)
--- The two sets are disjoint, and each is in bijection with {m in [0,N) : inA m}.
+-- By structural induction on N.
+-- The new elements at the N' + 1 step are 3N', 3N'+1, 3N'+2:
+-- - inA 3N' = inA N' (by bijection)
+-- - inA (3N'+1) = inA N' (by direct computation, since (3N'+1) mod 3 = 1 < 2 and (3N'+1)/3 = N')
+-- - inA (3N'+2) = false (by digit-2 lemma)
+-- So countA (3 * (N' + 1)) = countA (3 * N') + inA N' + inA N' + 0
+--                          = 2 * countA N' + 2 * inA N'
+--                          = 2 * (countA N' + inA N')
+--                          = 2 * countA (N' + 1)
+--                          = 2 * countA N
 theorem countA_3mul_eq_2mul (N : Nat) : countA (3 * N) = 2 * countA N := by
-  sorry
+  induction N using Nat.rec with
+  | zero => rfl
+  | succ N' ih =>
+    -- List.range (3 * (N' + 1)) = List.range (3 * N') ++ [3N', 3N'+1, 3N'+2]
+    have h_range : List.range (3 * (N' + 1)) = List.range (3 * N') ++ [3 * N', 3 * N' + 1, 3 * N' + 2] := by
+      rw [show 3 * (N' + 1) = 3 * N' + 3 from by ring]
+      rw [List.range_succ_eq_append]
+      simp
+    sorry
 
 theorem countA_3pow_eq_2pow : ∀ k : Nat, countA (3^k) = 2^k := by
   intro k
   induction k using Nat.rec with
-  | zero =>
-    native_decide
+  | zero => rfl
   | succ k' ih =>
     have h_eq : 3 ^ (k' + 1) = 3 * 3 ^ k' := by ring
     rw [h_eq]
@@ -58,6 +71,7 @@ theorem countA_3pow_eq_2pow : ∀ k : Nat, countA (3^k) = 2^k := by
     rw [ih]
     omega
 
+-- Tests
 example : countA 1 = 1 := by native_decide
 example : countA 3 = 2 := by native_decide
 example : countA 9 = 4 := by native_decide
