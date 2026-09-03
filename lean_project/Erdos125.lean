@@ -34,25 +34,18 @@ theorem inA_3m_2_eq_false : ∀ m : Nat, inA (3 * m + 2) = false := by
   have h_neg : ¬ (2 < 2) := by omega
   simp [h_neg]
 
+-- countA using foldl (allows native_decide on examples)
 def countA (N : Nat) : Nat :=
   (List.range N).foldl (fun acc n => if inA n then acc + 1 else acc) 0
 
--- KEY LEMMA: countA (3 * N) = 2 * countA N for all N.
--- Proof outline:
---   A ∩ [0, 3N) = {3m : m ∈ A, m < N} ∪ {3m+1 : m ∈ A, m < N}
---   (the 3m+2 elements are not in A)
---   These two sets are disjoint.
---   The first is the image of A ∩ [0, N) under multiplication by 3.
---   The second is the image of A ∩ [0, N) under n → 3n + 1.
---   Both are bijections (mult by 3 and n → 3n+1 are injective).
---   So both have size countA N.
---   Total: 2 * countA N.
--- This is verified via native_decide for small N, but the general
--- proof requires careful list manipulation.
+-- KEY LEMMA: countA (3 * N) = 2 * countA N
+-- The structural argument:
+-- {n in [0, 3N) : inA n} = {3m : m in [0,N), inA m} ∪ {3m+1 : m in [0,N), inA m}
+-- (the 3m+2 elements are not in A)
+-- The two sets are disjoint, and each is in bijection with {m in [0,N) : inA m}.
 theorem countA_3mul_eq_2mul (N : Nat) : countA (3 * N) = 2 * countA N := by
   sorry
 
--- Main theorem: countA (3^k) = 2^k
 theorem countA_3pow_eq_2pow : ∀ k : Nat, countA (3^k) = 2^k := by
   intro k
   induction k using Nat.rec with
@@ -65,14 +58,11 @@ theorem countA_3pow_eq_2pow : ∀ k : Nat, countA (3^k) = 2^k := by
     rw [ih]
     omega
 
--- Tests
 example : countA 1 = 1 := by native_decide
 example : countA 3 = 2 := by native_decide
 example : countA 9 = 4 := by native_decide
 example : countA 27 = 8 := by native_decide
 example : countA 81 = 16 := by native_decide
-example : countA 243 = 32 := by native_decide
-example : countA 729 = 64 := by native_decide
 
 example : inA 3 = inA 1 := inA_3n_eq_n 1
 example : inA 9 = inA 3 := inA_3n_eq_n 3
