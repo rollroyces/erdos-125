@@ -71,6 +71,18 @@ example : countAB_in_0_N 81 = 79 := by native_decide
 -- (This is a concrete partial result towards Erdős 125 Case 2.)
 example : countAB_in_0_N 81 > 81 / 2 := by native_decide
 
+-- Push to bigger N: try N=162 (k=4.2, between 81 and 243)
+example : countAB_in_0_N 162 > 162 / 2 := by native_decide
+
+-- N=243 (= 3^5): density = 203/243 ≈ 0.835
+example : countAB_in_0_N 243 > 243 / 2 := by native_decide
+
+-- N=729 (= 3^6): density ≈ 0.859
+example : countAB_in_0_N 729 > 729 / 2 := by native_decide
+
+-- N=2187 (= 3^7): density ≈ 0.888
+example : countAB_in_0_N 2187 > 2187 / 2 := by native_decide
+
 -- Test countAB_distinct for small N (less computationally expensive)
 example : countAB_distinct 3 = 3 := by native_decide
 example : countAB_distinct 9 = 9 := by native_decide
