@@ -6,6 +6,7 @@ package «erdos125»
 @[default_target]
 lean_lib «Erdos125»
 lean_lib «Erdos125A»
+lean_lib «Erdos125B»
 lean_lib «Erdos125Density»
 
 require mathlib from git "https://github.com/leanprover-community/mathlib4.git"
