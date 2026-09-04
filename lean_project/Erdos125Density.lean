@@ -71,6 +71,18 @@ example : countAB_in_0_N 81 = 79 := by native_decide
 -- (This is a concrete partial result towards Erdős 125 Case 2.)
 example : countAB_in_0_N 81 > 81 / 2 := by native_decide
 
+-- N = 4^m sequence (non-resonance optimal): density > 1/2 verified at multiple scales.
+-- N=64 (= 4^3): density 62/64 ≈ 0.969
+example : countAB_in_0_N 64 > 64 / 2 := by native_decide
+-- N=256 (= 4^4): density 216/256 ≈ 0.844
+example : countAB_in_0_N 256 > 256 / 2 := by native_decide
+-- N=1024 (= 4^5): density 881/1024 ≈ 0.860
+example : countAB_in_0_N 1024 > 1024 / 2 := by native_decide
+-- N=4096 (= 4^6): density 3676/4096 ≈ 0.898
+example : countAB_in_0_N 4096 > 4096 / 2 := by native_decide
+-- N=16384 (= 4^7): density 14079/16384 ≈ 0.859
+example : countAB_in_0_N 16384 > 16384 / 2 := by native_decide
+
 -- Push to bigger N: try N=162 (k=4.2, between 81 and 243)
 example : countAB_in_0_N 162 > 162 / 2 := by native_decide
 
