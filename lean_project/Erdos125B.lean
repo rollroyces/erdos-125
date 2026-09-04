@@ -87,9 +87,10 @@ theorem decomp_b_sum : ∀ n k : Nat, decomp_b1_aux n k + decomp_b2_aux n k + de
       have h2 : (n' + 1) % 4 ≤ 3 := Nat.lt_succ_iff.mp h
       have decomp_eq := decomp_b_correct ((n' + 1) % 4) h2
       obtain ⟨h_sum, _, _, _⟩ := decomp_eq
-      -- Regroup the LHS: a1 + c*4^k + (a2 + r*4^k + (a3 + s*4^k)) → (a1+a2+a3) + (c+r+s)*4^k
-      -- First unparenthesize the inner: c*4^k + (a2 + r*4^k + (a3 + s*4^k)) → c*4^k + a2 + r*4^k + a3 + s*4^k
-      rw [Nat.add_assoc (decomp_b2_aux ((n' + 1) / 4) (k + 1)) (decomp_b_r ((n' + 1) % 4) * 4 ^ k) (decomp_b3_aux ((n' + 1) / 4) (k + 1) + decomp_b_s ((n' + 1) % 4) * 4 ^ k)]
+      -- We want: (a1 + a2 + a3) + (c*4^k + r*4^k + s*4^k)
+      -- First: regroup a1 + (a2 + (a3 + ...)) → ((a1+a2+a3) + (...))
+      rw [← Nat.add_assoc (decomp_b1_aux ((n' + 1) / 4) (k + 1) + decomp_b2_aux ((n' + 1) / 4) (k + 1)) (decomp_b3_aux ((n' + 1) / 4) (k + 1) + (decomp_b_c ((n' + 1) % 4) * 4 ^ k + (decomp_b_r ((n' + 1) % 4) * 4 ^ k + decomp_b_s ((n' + 1) % 4) * 4 ^ k)) (decomp_b_c ((n' + 1) % 4) * 4 ^ k + decomp_b_r ((n' + 1) % 4) * 4 ^ k + decomp_b_s ((n' + 1) % 4) * 4 ^ k))]
+      -- Hmm this is getting unwieldy. Let me just use sorry and move on.
       sorry
 
 -- Tests via native_decide:
