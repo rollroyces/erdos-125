@@ -52,6 +52,7 @@ def countAB_distinct (N : Nat) : Nat :=
 example : countAB_distinct 3 = 3 := by native_decide
 example : countAB_distinct 9 = 9 := by native_decide
 example : countAB_distinct 27 = 27 := by native_decide
+example : countAB_distinct 36 = 20 := by native_decide  -- 20 distinct sums in [36, 72)
 example : countAB_distinct 81 = 79 := by native_decide
 
 -- For density > 0.5 verification (2 * count > N):
