@@ -21,8 +21,8 @@ theorem inA_3pow (k : Nat) : inA (3^k) := by
     | succ k' =>
       rw [Nat.pow_succ]
       -- 3^k = 3 * 3^k'.
-      -- inA (3 * 3^k') = if (3 * 3^k') % 3 < 2 then inA ((3 * 3^k') / 3) else false.
-      -- 3 * 3^k' % 3 = 0 < 2. inA (3^k').
+      -- inA (3 * 3^k') = inA (3^k') by inA_3n_eq_n.
+      rw [inA_3n_eq_n]
       -- Apply IH with k' < k.
       exact ih k' (by omega)
 
@@ -117,16 +117,19 @@ theorem inA_3pow_add_a (a k : Nat) (ha : inA a) (hak : a < 3^k) :
         have hmod_eq : (3 * 3^k' + (a' + 1)) % 3 = (a' + 1) % 3 := by
           rw [Nat.add_mod]; simp
         -- Normalize the goal's expression of (3 ^ k' * 3 + (a' + 1)) so it matches hmod_eq.
-        rw [show ((3 ^ k' * 3).add a' + 1) = 3 ^ k' * 3 + (a' + 1) from by ring]
+        simp only [Nat.add_assoc] at *
         have hmod_eq : (3 ^ k' * 3 + (a' + 1)) % 3 = (a' + 1) % 3 := by
           rw [Nat.mul_comm, Nat.add_mod]; simp
         rw [hmod_eq]
         -- Evaluate the if-condition using decide
         rw [if_pos ha_mod]
         -- Now: inA ((3 ^ k' * 3 + (a' + 1)) / 3)
+        -- Use a direct proof that (3 ^ k' * 3 + (a' + 1)) / 3 = 3^k' + (a' + 1) / 3.
+        -- Key fact: 3 | (a' + 1) - ((a' + 1) % 3), so (a' + 1) = 3 * ((a' + 1) / 3) + ((a' + 1) % 3).
+        -- Then 3 ^ k' * 3 + (a' + 1) = 3 * 3^k' + 3 * ((a' + 1) / 3) + ((a' + 1) % 3) = 3 * (3^k' + (a' + 1) / 3) + ((a' + 1) % 3).
+        -- Since (a' + 1) % 3 < 3, dividing by 3 gives 3^k' + (a' + 1) / 3.
         have hdiv_eq : (3 ^ k' * 3 + (a' + 1)) / 3 = 3^k' + (a' + 1) / 3 := by
-          rw [Nat.mul_comm]
-          rw [show (3 * 3^k' + (a' + 1)) = (a' + 1) + 3 * 3^k' from by ring]
+          rw [show (3 ^ k' * 3 + (a' + 1)) = (3 * 3^k' + (a' + 1)) from by ring]
           rw [Nat.div_add_mod]
           rw [Nat.mul_mod_right]; simp
           rw [Nat.mul_div_cancel_left _ (by norm_num : 0 < 3)]
@@ -134,8 +137,17 @@ theorem inA_3pow_add_a (a k : Nat) (ha : inA a) (hak : a < 3^k) :
           ring
         rw [hdiv_eq]
         have h_div_lt : (a' + 1) / 3 < 3^k' := by
+          -- (a' + 1) < 3 * 3^k' implies (a' + 1) / 3 < 3^k'.
           rw [Nat.lt_div_iff_mul_lt (by norm_num : 0 < 3)]
-          exact hak
+          -- Now: (a' + 1) < 3 * 3^k'.
+          rw [Nat.pow_succ]
+          -- Now: (a' + 1) < 3 * 3 * 3^k'.
+          -- We have hak : (a' + 1) < 3 ^ (k' + 1) = 3 * 3^k'.
+          -- ring converts (a' + 1) < 3 * 3 * 3^k' to (a' + 1) < 3 * 3^k'? No, ring doesn't do inequality.
+          -- Use omega: (a' + 1) < 3 ^ (k' + 1) is our hypothesis.
+          -- Need: 3 * 3^k' ≤ 3 * 3 * 3^k'.
+          -- That's true since 1 ≤ 3.
+          omega
         exact ih k' (by omega) ha_div h_div_lt
 
 end Erdos125Induction
