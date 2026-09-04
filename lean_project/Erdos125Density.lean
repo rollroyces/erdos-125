@@ -48,6 +48,29 @@ def countAB_distinct (N : Nat) : Nat :=
       if N ≤ s ∧ s < 2 * N then acc'.concat s else acc') acc) []
   raw_sums.eraseDups.length
 
+-- Count distinct sums a + b for a ∈ A ∩ [0, N), b ∈ B ∩ [0, N), with a + b ∈ [0, N).
+-- This is the "lower density" measure of A + B.
+def countAB_in_0_N (N : Nat) : Nat :=
+  let A_list := ((List.range N).filter inA)
+  let B_list := ((List.range N).filter inB)
+  let raw_sums := A_list.foldl (fun acc a =>
+    B_list.foldl (fun acc' b =>
+      let s := a + b
+      if s < N then acc'.concat s else acc') acc) []
+  raw_sums.eraseDups.length
+
+-- Tests: countAB_in_0_N counts |A + B ∩ [0, N)|.
+-- From numerical: 79 for N=81, 27 for N=27, 9 for N=9, 3 for N=3.
+-- We verify these by native_decide.
+example : countAB_in_0_N 3 = 3 := by native_decide
+example : countAB_in_0_N 9 = 9 := by native_decide
+example : countAB_in_0_N 27 = 27 := by native_decide
+example : countAB_in_0_N 81 = 79 := by native_decide
+
+-- THE KEY DENSITY LEMMA: for N=81, density > 1/2
+-- (This is a concrete partial result towards Erdős 125 Case 2.)
+example : countAB_in_0_N 81 > 81 / 2 := by native_decide
+
 -- Test countAB_distinct for small N (less computationally expensive)
 example : countAB_distinct 3 = 3 := by native_decide
 example : countAB_distinct 9 = 9 := by native_decide
