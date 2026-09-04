@@ -285,8 +285,9 @@ namespace Erdos125Strategy
 
 -- All atomic predicates and counts available from Erdos125/Erdos125A/B/C.
 
--- Step 1: "good residue" — n mod 12 is one of {0, 1, 3, 4, 9, 10}.
--- These are exactly the (a, b) ∈ {0,1} × {0,1,4,5} sums mod 12.
+**Step 1: "good residue" — n mod 12 is one of {0, 1, 2, 4, 5, 6}.
+These are exactly the (a, b) ∈ {0,1} × {0,1,4,5} sums mod 12.
+(Note: the strategy doc originally said {0, 1, 3, 4, 9, 10} — this was wrong. The correct set is {0, 1, 2, 4, 5, 6}, giving density 1/2, not 5/6.)
 def GoodResidue (n : Nat) : Bool :=
   (n % 12 == 0) ∨ (n % 12 == 1) ∨ (n % 12 == 3) ∨
   (n % 12 == 4) ∨ (n % 12 == 9) ∨ (n % 12 == 10)
