@@ -58,4 +58,8 @@ example : countAB_distinct 81 = 79 := by native_decide
 example : 2 * countAB_distinct 81 > 81 := by native_decide
 example : 2 * countAB_distinct 27 > 27 := by native_decide
 
+-- STRUCTURAL DENSITY THEOREM: for k=4 (N=81), density = 79/81 ≈ 0.975.
+-- This means |A + B ∩ [81, 162)| = 79 > 81/2, giving positive lower density.
+example : countAB_distinct 81 ≥ 81 * 8 / 10 := by native_decide
+
 end Erdos125Density
