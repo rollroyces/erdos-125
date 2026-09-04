@@ -37,4 +37,25 @@ example : countB_in_range 128 = 16 := by native_decide  -- B ∩ [0, 256)
 example : countB_in_range 512 = 32 := by native_decide  -- B ∩ [0, 1024)
 example : countB_in_range 2048 = 64 := by native_decide  -- B ∩ [0, 4096) (B is bounded, max B < 4096)
 
+-- Count distinct sums a + b for a ∈ A ∩ [N, 2N), b ∈ B ∩ [0, 2N), with a + b ∈ [N, 2N).
+-- Use list.eraseDups to remove duplicates.
+def countAB_distinct (N : Nat) : Nat :=
+  let A_list := ((List.range (2 * N)).filter (fun n => N ≤ n ∧ n < 2 * N ∧ inA n))
+  let B_list := ((List.range (2 * N)).filter inB)
+  let raw_sums := A_list.foldl (fun acc a =>
+    B_list.foldl (fun acc' b =>
+      let s := a + b
+      if N ≤ s ∧ s < 2 * N then acc'.concat s else acc') acc) []
+  raw_sums.eraseDups.length
+
+-- Test countAB_distinct for small N (less computationally expensive)
+example : countAB_distinct 3 = 3 := by native_decide
+example : countAB_distinct 9 = 9 := by native_decide
+example : countAB_distinct 27 = 27 := by native_decide
+example : countAB_distinct 81 = 79 := by native_decide
+
+-- For density > 0.5 verification (2 * count > N):
+example : 2 * countAB_distinct 81 > 81 := by native_decide
+example : 2 * countAB_distinct 27 > 27 := by native_decide
+
 end Erdos125Density
