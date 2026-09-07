@@ -104,6 +104,17 @@ example : countAB_in_0_N 19683 > 19683 / 2 := by native_decide
 -- N=59049 (= 3^10): density ≈ 0.779 (numerical)
 example : countAB_in_0_N 59049 > 59049 / 2 := by native_decide
 
+-- Push further: N = 3^11 = 177147
+example : countAB_in_0_N (3^11) > 3^11 / 2 := by native_decide
+-- N = 3^12 = 531441
+example : countAB_in_0_N (3^12) > 3^12 / 2 := by native_decide
+-- N = 4^8 = 65536
+example : countAB_in_0_N (4^8) > 4^8 / 2 := by native_decide
+-- N = 4^9 = 262144
+example : countAB_in_0_N (4^9) > 4^9 / 2 := by native_decide
+-- N = 4^10 = 1048576
+example : countAB_in_0_N (4^10) > 4^10 / 2 := by native_decide
+
 -- Test countAB_distinct for small N (less computationally expensive)
 example : countAB_distinct 3 = 3 := by native_decide
 example : countAB_distinct 9 = 9 := by native_decide
