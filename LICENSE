@@ -1,0 +1,40 @@
+Commercial Dual License
+
+Copyright (c) 2026 Royce (the project owner).
+
+This project is dual-licensed under AGPL-3.0-or-later and a separate
+commercial license. You may choose either license under which to use
+this software.
+
+## Option A: AGPL-3.0-or-later
+
+You may use, modify, and distribute this software under the terms of
+the GNU Affero General Public License as published by the Free Software
+Foundation, either version 3 of the License, or (at your option) any
+later version.
+
+The full text of the AGPL-3.0 license is available at:
+  https://www.gnu.org/licenses/agpl-3.0.txt
+
+In summary: if you distribute a modified version of this software
+or a service that makes it available to users over a network, you must
+publish the complete corresponding source code under the same
+AGPL-3.0-or-later license.
+
+## Option B: Commercial license
+
+If you wish to use, modify, or distribute this software without the
+copyleft obligations of the AGPL-3.0, you must obtain a separate
+commercial license from the copyright holder.
+
+For commercial licensing inquiries, contact the project owner.
+
+## Why dual-license?
+
+The copyleft terms of AGPL-3.0 ensure that improvements to this
+software remain open-source. The commercial option allows for-profit
+use under terms that do not require source disclosure.
+
+This is the same licensing model used by the related projects
+py-idp (AI IDP framework) and crouzeix_CN (Crouzeix ratio
+verification), both by the same author.
