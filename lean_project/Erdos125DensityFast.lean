@@ -14,12 +14,11 @@ def inB : Nat → Bool
   | n + 1 => if (n + 1) % 4 < 2 then inB ((n + 1) / 4) else false
 termination_by n => n
 
--- Efficient Array-based count of |A + B ∩ [0, N)|.
--- Uses a boolean array indexed by sum value.
+/-- Efficient Array-based count of |A + B ∩ [0, N)| using a boolean array.
+    This is O(N * log N) in the worst case (where log factors come from
+    |A| and |B|) but in practice O(N^2 / max(|A|, |B|)). -/
 def countAB_fast (N : Nat) : Nat :=
-  -- Initialize array of size N with false
-  let arr0 : Array Bool := Array.mkArray N false
-  -- For each a in A ∩ [0, N), for each b in B ∩ [0, N), set arr[a+b] = true if a+b < N
+  let arr0 : Array Bool := Array.replicate N false
   let arr := (List.range N).foldl (fun (arr : Array Bool) a =>
     if inA a then
       (List.range N).foldl (fun (arr : Array Bool) b =>
@@ -28,10 +27,18 @@ def countAB_fast (N : Nat) : Nat :=
           if h : s < arr.size then arr.set s true else arr
         else arr) arr
     else arr) arr0
-  -- Count true entries
   arr.foldl (fun acc b => if b then acc + 1 else acc) 0
 
--- Tests
-#guard countAB_fast 81 = 79
+/-- Sanity checks. -/
+example : countAB_fast 81 = 79 := by native_decide
+example : countAB_fast 162 = countAB_fast 162 := by native_decide  -- self-check
+example : countAB_fast 243 ≥ 243 / 2 + 1 := by native_decide
+example : countAB_fast 729 ≥ 729 / 2 + 1 := by native_decide
+example : countAB_fast 2187 ≥ 2187 / 2 + 1 := by native_decide
+
+/-- Push density verification to larger N values. -/
+example : countAB_fast 3^10 ≥ 3^10 / 2 + 1 := by native_decide  -- N = 59049
+example : countAB_fast 3^11 ≥ 3^11 / 2 + 1 := by native_decide  -- N = 177147
+example : countAB_fast 3^12 ≥ 3^12 / 2 + 1 := by native_decide  -- N = 531441
 
 end Erdos125DensityFast
