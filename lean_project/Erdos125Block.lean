@@ -137,7 +137,34 @@ theorem inA_3pow_add_a_iff (a k : Nat) (hak : a < 3^k) :
           -- (3 * 3^k' + (a' + 1)) / 3 = 3^k' + (a' + 1) / 3 by Nat.add_div.
           -- Apply reverse IH to get inA ((a' + 1) / 3) = true.
           -- Then by inA def, inA (a' + 1) = inA ((a' + 1) / 3) = true.
-          sorry
+          have h_in_unfold' : Erdos125.inA (3 * 3^k' + (a' + 1)) = true := hk_inv
+          rw [Erdos125.inA] at h_in_unfold'
+          rw [h_mod_eq] at h_in_unfold'
+          simp only [h_lt, if_true] at h_in_unfold'
+          -- h_in_unfold' : inA ((3 * 3^k' + (a' + 1)) / 3) = true
+          have h_div_eq : (3 * 3^k' + (a' + 1)) / 3 = 3^k' + (a' + 1) / 3 := by
+            rw [show 3 * 3^k' + (a' + 1) = (a' + 1) + 3 * 3^k' from by ring]
+            rw [Nat.div_add_mod]
+            rw [Nat.mul_mod_right]; simp
+            rw [Nat.mul_div_cancel_left _ (by norm_num : 0 < 3)]
+            rw [show (a' + 1) = 3 * ((a' + 1) / 3) + (a' + 1) % 3 from by ring]
+            rw [Nat.add_mod]; simp
+            have hmod_lt : (a' + 1) % 3 < 3 := by omega
+            have hmod_div : (a' + 1) % 3 / 3 = 0 := by
+              omega
+            rw [hmod_div]
+            ring
+          rw [h_div_eq] at h_in_unfold'
+          -- h_in_unfold' : inA (3^k' + (a' + 1) / 3) = true
+          have h_div_lt : (a' + 1) / 3 < 3^k' := by
+            rw [Nat.lt_div_iff_mul_lt (by norm_num : 0 < 3)]
+            exact hak
+          have h_ih : Erdos125.inA ((a' + 1) / 3) := ih k' (by omega) ((a' + 1) / 3) h_div_lt h_in_unfold'
+          -- Now: inA (a' + 1) = (a' + 1) % 3 < 2 then inA ((a' + 1) / 3) else false.
+          -- Since (a' + 1) % 3 < 2, this = inA ((a' + 1) / 3) = true.
+          unfold Erdos125.inA
+          rw [if_pos h_lt]
+          exact h_ih
 
 /-- **Block size formula**: |A ∩ [0, 2·3^k)| = 2^(k+1). -/
 theorem countA_2_3pow_eq_2pow_succ (k : Nat) :
