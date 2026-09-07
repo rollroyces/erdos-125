@@ -44,4 +44,13 @@ example : countAB_fast 4^8 ≥ 4^8 / 2 + 1 := by native_decide    -- N = 65536
 example : countAB_fast 4^9 ≥ 4^9 / 2 + 1 := by native_decide    -- N = 262144
 example : countAB_fast 4^10 ≥ 4^10 / 2 + 1 := by native_decide  -- N = 1048576
 
+/-- Push to N = 3^13 = 1594323. -/
+example : countAB_fast 3^13 ≥ 3^13 / 2 + 1 := by native_decide  -- N = 1594323
+example : countAB_fast 4^11 ≥ 4^11 / 2 + 1 := by native_decide  -- N = 4194304
+example : countAB_fast 4^12 ≥ 4^12 / 2 + 1 := by native_decide  -- N = 16777216
+
+/-- Verify density > 0.8 at N = 4^12 (16M). -/
+example : countAB_fast (4^12) ≥ 4^12 * 8 / 10 := by native_decide
+example : countAB_fast (3^12) ≥ 3^12 * 8 / 10 := by native_decide
+
 end Erdos125DensityFast
