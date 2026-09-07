@@ -67,4 +67,7 @@ example : countAB_fast (4^14) ≥ 4^14 * 85 / 100 := by native_decide
 example : countAB_fast (4^14) ≥ 4^14 * 9 / 10 := by native_decide
 example : countAB_fast (4^13) ≥ 4^13 * 9 / 10 := by native_decide
 
+/-- Push to N = 4^15 = 1 billion. -/
+example : countAB_fast (4^15) ≥ 4^15 / 2 + 1 := by native_decide  -- N = 1073741824
+
 end Erdos125DensityFast
