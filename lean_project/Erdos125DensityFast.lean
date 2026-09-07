@@ -62,4 +62,9 @@ example : countAB_fast (4^14) ≥ 4^14 * 8 / 10 := by native_decide  -- density 
 -- example : countAB_fast 4^15 ≥ 4^15 / 2 + 1 := by native_decide
 -- example : countAB_fast 3^15 ≥ 3^15 / 2 + 1 := by native_decide
 
+/-- Density > 0.85 at N = 4^14. -/
+example : countAB_fast (4^14) ≥ 4^14 * 85 / 100 := by native_decide
+example : countAB_fast (4^14) ≥ 4^14 * 9 / 10 := by native_decide
+example : countAB_fast (4^13) ≥ 4^13 * 9 / 10 := by native_decide
+
 end Erdos125DensityFast
