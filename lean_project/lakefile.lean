@@ -12,6 +12,7 @@ lean_lib «Erdos125C»
 lean_lib «Erdos125Count»
 lean_lib «Erdos125Density»
 lean_lib «Erdos125DensityFast»
+lean_lib «Erdos125Equidistribution»
 lean_lib «Erdos125Induction»
 lean_lib «Erdos125Irrational»
 lean_lib «Erdos125Resonance»
