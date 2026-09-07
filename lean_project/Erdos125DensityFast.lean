@@ -36,9 +36,12 @@ example : countAB_fast 243 ≥ 243 / 2 + 1 := by native_decide
 example : countAB_fast 729 ≥ 729 / 2 + 1 := by native_decide
 example : countAB_fast 2187 ≥ 2187 / 2 + 1 := by native_decide
 
-/-- Push density verification to larger N values. -/
+/-- Push density verification to larger N values (powers of 3 and 4). -/
 example : countAB_fast 3^10 ≥ 3^10 / 2 + 1 := by native_decide  -- N = 59049
 example : countAB_fast 3^11 ≥ 3^11 / 2 + 1 := by native_decide  -- N = 177147
 example : countAB_fast 3^12 ≥ 3^12 / 2 + 1 := by native_decide  -- N = 531441
+example : countAB_fast 4^8 ≥ 4^8 / 2 + 1 := by native_decide    -- N = 65536
+example : countAB_fast 4^9 ≥ 4^9 / 2 + 1 := by native_decide    -- N = 262144
+example : countAB_fast 4^10 ≥ 4^10 / 2 + 1 := by native_decide  -- N = 1048576
 
 end Erdos125DensityFast
