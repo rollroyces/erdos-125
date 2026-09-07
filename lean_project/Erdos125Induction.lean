@@ -90,39 +90,94 @@ theorem inA_3pow_add_a (a k : Nat) (ha : inA a) (hak : a < 3^k) :
         exact inA_3pow k'
       | succ a' =>
         obtain ⟨ha_mod, ha_div⟩ := inA_pos_implies (a' + 1) ha (by omega)
-        -- Use the established fact: ((3 ^ k' * 3).add a' + 1) = 3 * 3^k' + (a' + 1).
-        -- We need to convert the goal LHS ((3 ^ k' * 3).add a' + 1) to (3 * 3^k' + (a' + 1)).
-        -- Use change of goal via Eq.mpr / show.
-        suffices h : inA (3 * 3^k' + (a' + 1)) = true from by
-          -- h is the rewritten version of the goal.
-          show inA (3 * 3^k' + (a' + 1)) = true
-          -- Now prove this.
-          unfold inA
-          have hmod_eq : (3 * 3^k' + (a' + 1)) % 3 = (a' + 1) % 3 := by
-            rw [Nat.add_mod]; simp
-          rw [hmod_eq]
-          simp only [ha_mod, if_true]
-          have hdiv_eq : (3 * 3^k' + (a' + 1)) / 3 = 3^k' + (a' + 1) / 3 := by
-            have ha1 : (a' + 1) = 3 * ((a' + 1) / 3) + (a' + 1) % 3 := by
-              rw [Nat.div_add_mod]
-            rw [ha1]
-            rw [Nat.add_assoc]
-            rw [Nat.mul_add 3 3^k' ((a' + 1) / 3)]
-            rw [Nat.div_add_mod]
-            rw [Nat.mul_mod_right]
-            simp
-            rw [Nat.mul_div_cancel_left _ (by norm_num : 0 < 3)]
-            have hmod_lt_3 : (a' + 1) % 3 < 3 := by omega
-            have hmod_div : (a' + 1) % 3 / 3 = 0 := by omega
-            rw [hmod_div]
-            ring
-          rw [hdiv_eq]
-          have h_div_lt : (a' + 1) / 3 < 3^k' := by
-            rw [Nat.lt_div_iff_mul_lt (by norm_num : 0 < 3)]
-            rw [Nat.pow_succ]
-            exact hak
-          exact ih k' (by omega) ((a' + 1) / 3) ha_div h_div_lt
-        sorry
+        -- The goal LHS is inA (((3 ^ k' * 3).add a' + 1).
+        -- This unfolds to a complex if-then-else. The arithmetic identity
+        -- (3 ^ k' * 3 = 3 * 3^k') is the issue.
+        -- 
+        -- Alternative approach: directly prove via decision procedure.
+        -- The proposition inA (3^k + a) where a ∈ A and a < 3^k is decidable.
+        -- Use `decide` to dispatch.
+
+        -- Use IH directly without unfolding the .add notation.
+        -- First, note that 3^k + (a' + 1) = 3 * 3^k' + (a' + 1) (after rw [Nat.pow_succ]).
+        -- We need to show inA (3 * 3^k' + (a' + 1)).
+        -- By inA def, this unfolds to:
+        --   if (3 * 3^k' + (a' + 1)) % 3 < 2 then inA (...) else false
+        --   = if (a' + 1) % 3 < 2 then inA (3^k' + (a' + 1) / 3) else false
+        --   = inA (3^k' + (a' + 1) / 3) (by ha_mod)
+        -- = IH on (a' + 1) / 3 < 3^k'
+        -- 
+        -- But the unfolding has the .add issue. Let me use a different approach:
+        -- Define a "translated" theorem with explicit + form.
+
+        -- Simplify: just use a direct proof by changing the goal to use 3 * 3^k'.
+        -- The expression ((3 ^ k' * 3).add a' + 1) is β-equivalent to (3 * 3^k' + (a' + 1)).
+        -- Use the LHS of the if-else.
+        -- 
+        -- Define a function to extract the inner.
+        -- Actually, let me try `generalize` or `wlog` or some other tactic.
+
+        -- Or use a different induction variable: induction on a (not k).
+        -- 
+        -- The base case a = 0: inA 3^k = true by inA_3pow.
+        -- The step a = a' + 1: inA (3^k + a' + 1).
+        -- By inA def: if ((3^k + a' + 1) % 3 < 2) then inA ((3^k + a' + 1) / 3) else false.
+        -- 3^k + a' + 1 = 3 * 3^k' + a' + 1.
+        -- (3 * 3^k' + a' + 1) % 3 = (a' + 1) % 3 < 2 (by ha_mod).
+        -- (3 * 3^k' + a' + 1) / 3 = (3 * 3^k' + a') / 3 + 1/3 = 3^k' + a' / 3 + 0 = 3^k' + a' / 3.
+        -- Wait, (a' + 1) / 3 not a' / 3. Hmm.
+        -- 
+        -- Actually, the identity is:
+        -- (3 * X + y) / 3 = X + y / 3 (always).
+        -- So (3 * 3^k' + (a' + 1)) / 3 = 3^k' + (a' + 1) / 3.
+        -- 
+        -- By IH (with a = (a' + 1) / 3): inA (3^k' + (a' + 1) / 3).
+        -- Need: inA (a' + 1) / 3 (by inA_pos_implies).
+        -- Need: (a' + 1) / 3 < 3^k' (from hak).
+        -- 
+        -- So the proof works. Just need to formalize the unfolding.
+
+        -- The key fact: inA (3 * X + y) = inA (X + y / 3) when y % 3 < 2.
+        -- This is the digit-removal lemma.
+        -- 
+        -- Proof: unfold inA. The match on (3 * X + y) is non-zero.
+        -- It unfolds to if ((3X + y) % 3 < 2) then inA ((3X + y) / 3) else false.
+        -- (3X + y) % 3 = y % 3 (since 3X ≡ 0). So if resolves to "then" by hy.
+        -- (3X + y) / 3 = X + y / 3 (by the key identity).
+        -- So inA (3X + y) = inA (X + y / 3).
+        -- 
+        -- But the actual proof is non-trivial due to Lean's .add notation.
+        -- We use the helper lemma from Erdos125Induction2.
+        have heq : inA (3 * 3^k' + (a' + 1)) = inA (3^k' + (a' + 1) / 3) := by
+          rw [inA.eq_def, Nat.mul_comm]
+          cases h1 : 3^k' * 3 + (a' + 1) with
+          | zero => simp at h1
+          | succ n1 =>
+            rw [show n1 + 1 = 3^k' * 3 + (a' + 1) from h1.symm]
+            have hmod_eq : (3^k' * 3 + (a' + 1)) % 3 = (a' + 1) % 3 := by
+              rw [Nat.add_mod]; simp; rw [Nat.mul_mod_right]
+            rw [hmod_eq]
+            simp only [ha_mod, if_pos (by norm_num : 0 < 2)]
+            rw [Nat.mul_comm]
+            rw [show (3 * 3^k' + (a' + 1)) / 3 = 3^k' + (a' + 1) / 3 from by
+              rw [Nat.add_div (3 * 3^k') (a' + 1) 3 (by norm_num : 0 < 3)]
+              rw [Nat.mul_mod_right]
+              rw [Nat.mul_div_cancel_left _ (by norm_num : 0 < 3)]
+              have hmod_lt : (a' + 1) % 3 < 3 := by omega
+              have hmod_div : (a' + 1) % 3 / 3 = 0 := by omega
+              simp [hmod_lt, hmod_div]]
+            rfl
+        -- First, convert the goal's LHS to use 3 * 3^k' instead of 3^k' * 3.
+        rw [Nat.mul_comm]
+        -- Now: inA (3 * 3^k' + (a' + 1)) = true.
+        rw [heq]
+        -- Now: inA (3^k' + (a' + 1) / 3) = true.
+        -- Apply IH.
+        have h_div_lt : (a' + 1) / 3 < 3^k' := by
+          rw [Nat.lt_div_iff_mul_lt (by norm_num : 0 < 3)]
+          rw [Nat.pow_succ]
+          exact hak
+        exact ih k' (by omega) ((a' + 1) / 3) ha_div h_div_lt
 
 -- Verifications via native_decide.
 example : inA (3^1 + 0) = true := by native_decide  -- 3 ∈ A? 3 = 10_3, yes

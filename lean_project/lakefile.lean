@@ -11,5 +11,6 @@ lean_lib «Erdos125C»
 lean_lib «Erdos125Density»
 lean_lib «Erdos125DensityFast»
 lean_lib «Erdos125Induction»
+lean_lib «Erdos125Induction2»
 
 require mathlib from git "https://github.com/leanprover-community/mathlib4.git"
