@@ -71,6 +71,23 @@ lemma exists_int_close (x : ℝ) (ε : ℝ) (_hε : 0 < ε)
     exact h
   exact h'
 
+/-- **Numeric bound: log 4 < 2**.
+
+This is provable since 2 < exp 1, so exp 2 = (exp 1)² > 4. -/
+lemma log_4_lt_2 : Real.log 4 < 2 := by
+  have h : Real.log 4 < 2 ↔ 4 < Real.exp 2 := Real.log_lt_iff_lt_exp (by norm_num : (0 : ℝ) < 4)
+  rw [h]
+  have h1 : 2 < Real.exp 1 := Real.exp_one_gt_two
+  have hexp2 : Real.exp 2 = Real.exp 1 * Real.exp 1 := by
+    have e : (2 : ℝ) = (1 : ℝ) + 1 := (one_add_one_eq_two).symm
+    rw [e, Real.exp_add]
+  rw [hexp2]
+  -- 2 < exp 1 → 4 < exp 1 * exp 1
+  have h2 : (2 : ℝ) * 2 < Real.exp 1 * 2 := by nlinarith
+  have h3 : Real.exp 1 * 2 ≤ Real.exp 1 * Real.exp 1 := by
+    nlinarith [Real.exp_pos 1, sq_nonneg (Real.exp 1 - 2)]
+  linarith
+
 /-- **Step 3: L9 (close-scale lemma)** — STATEMENT.
 
 For every N₀ : ℕ, there exist k, m : ℕ with min (3^k, 4^m) > N₀ and
