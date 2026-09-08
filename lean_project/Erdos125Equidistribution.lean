@@ -5,43 +5,74 @@ namespace Erdos125Equidistribution
 
 open Real
 
-/-! # Equidistribution of {k · log 3 / log 4} mod 1 (Step 2)
+/-! # Steps 2-3 of Erdős 125 Case 2: Equidistribution and L9
 
-Step 2 of the 4-step Erdős 125 Case 2 plan.
+This file provides the dense orbit result (Step 2) and the L9 close-scale lemma
+(Step 3), which together enable the Erdős 1955 argument (Step 4 in
+`Erdos125Case2.lean`).
 
-The dense orbit result (the sequence {n · a} is dense in AddCircle 1 for irrational a)
-requires Mathlib's `AddCircle.denseRange_zsmul_coe_iff` lemma and its HSMul
-instance for AddCircle 1, which has typeclass resolution issues in the current Mathlib
-version. We document this as a known gap and proceed to Step 3 (L9) directly
-using the existing infrastructure.
+## Step 2: Dense orbit
 
-The "Weyl equidistribution" theorem itself (limiting distribution = Lebesgue measure)
-is NOT in Mathlib. But the WEAKER statement we need for L9 (density, not
-equidistribution) is supposed to be reachable via denseRange_zsmul_coe_iff.
+For an irrational `a : ℝ`, the sequence `{n · a}` mod 1 is dense in [0, 1].
 
-## Step 3 (L9 - close-scale lemma) — informal proof sketch
+This is a direct consequence of Mathlib's `AddCircle.denseRange_zsmul_coe_iff`:
+DenseRange (· • a : ℤ → AddCircle p) ↔ Irrational (a / p).
 
-The L9 lemma states: for every N₀, there exist k, m with min(3^k, 4^m) > N₀ and
+## Step 3: L9 (close-scale lemma)
+
+L9 states: for every N₀, there exist k, m with min(3^k, 4^m) > N₀ and
 |3^k - 4^m| / min(3^k, 4^m) < 1/3.
 
-**Proof sketch**:
-1. Consider the sequence α_n = {n · log 3 / log 4} (fractional part).
-2. Since log 3 / log 4 is irrational (Erdos125Irrational), the dense orbit tells us
-   α_n is dense in [0, 1].
-3. Given any N₀, choose k large (so 3^k > N₀). Find m = round(k · log 3 / log 4).
-4. Then |k · log 3 / log 4 - m| = |α_k - 0 or 1| can be made small (≤ 1/3 for large k).
-5. From |k · log 3 - m · log 4| small, we get 3^k / 4^m close to 1, i.e., |3^k - 4^m| small.
-6. After scaling, |3^k - 4^m| / min(3^k, 4^m) < 1/3.
+This follows from the dense orbit: the sequence {k · log 3 / log 4} mod 1 is dense,
+so we can find k with {k · log 3 / log 4} close to 0 (or 1, equivalently).
+Then m = round(k · log 3 / log 4) gives the close-scale.
 
-The formalization of this in Lean is incomplete due to the AddCircle 1 HSMul
-typeclass issue described above. -/
+## Limitations
 
-/-- Sketch: L9 lemma (close-scale).
+The direct Lean formalization hits a Lean 4 elaboration issue with the HSMul
+instance for `AddCircle 1`. We document this gap with `sorry` for the dense
+orbit proof.
+-/
 
-For every N₀ : ℕ, there exist k, m : ℕ with min (3^k) (4^m) > N₀ and
-|3^k - 4^m| < (min (3^k) (4^m)) / 3.
+/-- For an irrational `a : ℝ`, the sequence `{n · a}` mod 1 is dense in [0, 1).
 
-This is the formal statement of L9 (close-scale lemma) needed for Erdős 125 Case 2. -/
+Specifically: for any interval (c, d) with c < d and any N₀, there exists
+n ≥ N₀ with c < {n · a} < d (where {x} = x - floor x is the fractional part).
+
+This is the dense orbit result, which is Step 2 of the 4-step plan.
+
+The proof uses Mathlib's `AddCircle.denseRange_zsmul_coe_iff`:
+DenseRange (· • a : ℤ → AddCircle p) ↔ Irrational (a / p).
+
+For p = 1, a / 1 = a, so Irrational a ⟹ DenseRange (· • a : ℤ → AddCircle 1).
+
+We have proved the irrationality of log 3 / log 4 in `Erdos125Irrational`. -/
+theorem dense_orbit_irrational (a : ℝ) (ha : Irrational a) (c d : ℝ) (hcd : c < d)
+    (N₀ : ℕ) :
+    ∃ n ≥ N₀, c < Int.fract (n * a) ∧ Int.fract (n * a) < d := by
+  sorry
+
+/-- The specific case for a = log 3 / log 4. -/
+example (c d : ℝ) (hcd : c < d) (N₀ : ℕ) :
+    ∃ n ≥ N₀, c < Int.fract (n * (Real.log 3 / Real.log 4)) ∧
+              Int.fract (n * (Real.log 3 / Real.log 4)) < d :=
+  dense_orbit_irrational _ Erdos125Irrational.irrational_log_3_over_log_4 c d hcd N₀
+
+/-- L9 (close-scale lemma): for every N₀ : ℕ, there exist k, m : ℕ with
+    min (3^k) (4^m) > N₀ and |3^k - 4^m| < (min (3^k) (4^m)) / 3.
+
+This is the formal statement of L9 (close-scale lemma) needed for Erdős 125 Case 2.
+
+**Proof outline (uses dense_orbit_irrational):**
+1. By dense_orbit_irrational (with a = log 3 / log 4), the sequence {k · log 3 / log 4}
+   is dense in [0, 1].
+2. Given N₀, choose k large (so 3^k > N₀). Find m = round(k · log 3 / log 4).
+3. Then |k · log 3 - m · log 4| = |log 3| · |k · log 3 / log 4 - m| is small.
+4. This gives 3^k / 4^m close to 1, so |3^k - 4^m| / min(3^k, 4^m) is small.
+5. In particular, we can make this < 1/3.
+
+The full formalization requires the dense orbit proof, which is currently a
+`sorry` due to the AddCircle 1 HSMul elaboration issue. -/
 theorem L9 (N₀ : ℕ) :
     ∃ k m : Nat, min (3 ^ k) (4 ^ m) > N₀ ∧
     |(3 ^ k : ℤ) - (4 ^ m : ℤ)| * 3 < min (3 ^ k) (4 ^ m) := by
