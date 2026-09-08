@@ -73,6 +73,15 @@ theorem dense_orbit_log_3_over_log_4 :
   have : Real.log 3 / Real.log 4 ∈ Set.range (Rat.cast : ℚ → ℝ) := ⟨q, hq⟩
   exact hirr this
 
+/-- Cor: For any open interval (c, d) in [0, 1) and any N₀, there exist n ≥ N₀
+with c < {n · (log 3 / log 4)} < d.
+
+This follows from dense_orbit_log_3_over_log_4. -/
+lemma dense_orbit_corollary (c d : ℝ) (hcd : c < d) (N₀ : ℕ) :
+    ∃ n ≥ N₀, c < Int.fract (n * (Real.log 3 / Real.log 4)) ∧
+              Int.fract (n * (Real.log 3 / Real.log 4)) < d := by
+  sorry
+
 /-- **Step 3: L9 (close-scale lemma)** — formal statement.
 
 For every N₀ : ℕ, there exist k, m : ℕ with min (3^k) (4^m) > N₀ and
@@ -89,6 +98,7 @@ The formalization of this last step requires bounding |e^x - 1| from |x| in term
 theorem L9 (N₀ : ℕ) :
     ∃ k m : Nat, min (3 ^ k) (4 ^ m) > N₀ ∧
     |(3 ^ k : ℤ) - (4 ^ m : ℤ)| * 3 < min (3 ^ k) (4 ^ m) := by
+  -- Step 3a: Apply dense orbit to find k, m with |k · log 3 - m · log 4| small.
   sorry
 
 end Erdos125Equidistribution
