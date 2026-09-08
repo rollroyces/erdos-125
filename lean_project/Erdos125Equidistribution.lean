@@ -79,9 +79,25 @@ Proof strategy:
 4. Use exp_bound: |3^k - 4^m| ≤ 4^m · |exp((k log 3 - m log 4)) - 1|
                               ≤ 4^m · (ε · log 4)^2   (when ε · log 4 ≤ 1)
 5. Combined: |3^k - 4^m| / 4^m ≤ (ε · log 4)^2.
-6. Choose ε small enough that (ε · log 4)^2 < 1/3, e.g., ε = 0.4/log 4. -/
+6. Choose ε small enough that (ε · log 4)^2 < 1/3. -/
 theorem L9 (N₀ : ℕ) :
     ∃ k m : Nat, min (3 ^ k) (4 ^ m) > N₀ ∧
     |(3 ^ k : ℤ) - (4 ^ m : ℤ)| * 3 < min (3 ^ k) (4 ^ m) := by
+  -- Step 3a: Find n with dist (n • a) 0 < 1/2 (small fraction)
+  obtain ⟨n, hn⟩ := exists_n_in_ball (1/2) (by norm_num)
+  -- Step 3b: Use AddCircle.coe_zsmul to lift to real
+  -- n • a = n • (QuotientAddGroup.mk (log 3 / log 4)) = QuotientAddGroup.mk (n • (log 3 / log 4))
+  -- So we have ↑(n • (log 3 / log 4)) ∈ Metric.ball 0 (1/2)
+  have hn' : (↑(n • (Real.log 3 / Real.log 4)) : UnitAddCircle) ∈ Metric.ball 0 (1/2) := by
+    -- Manually unfold a and apply coe_zsmul
+    change (n • QuotientAddGroup.mk (Real.log 3 / Real.log 4) : UnitAddCircle) ∈ Metric.ball 0 (1/2) at hn
+    have h : (n • QuotientAddGroup.mk (Real.log 3 / Real.log 4) : UnitAddCircle) =
+             (↑(n • (Real.log 3 / Real.log 4)) : UnitAddCircle) := by
+      rw [AddCircle.coe_zsmul (p := (1 : ℝ))]
+    rw [h] at hn
+    exact hn
+  -- Step 3c: Get a real number m close to n • (log 3 / log 4)
+  obtain ⟨m, hm⟩ := exists_int_close (n • (Real.log 3 / Real.log 4)) hn'
+  -- hm : |n • (log 3 / log 4) - m| < 1/2
   sorry
 end Erdos125Equidistribution
