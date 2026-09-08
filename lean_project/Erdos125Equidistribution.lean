@@ -37,40 +37,51 @@ theorem dense_orbit_log_3_over_log_4 :
   have : Real.log 3 / Real.log 4 ∈ Set.range (Rat.cast : ℚ → ℝ) := ⟨q, hq⟩
   exact Erdos125Irrational.irrational_log_3_over_log_4 this
 
-/-- Helper: for any 0 < ε < 1, there exists n ≥ 1 (positive integer) such that
-Int.fract (n · (log 3 / log 4)) < ε.
+/-- Helper: for any 0 < ε, there exists n : ℤ such that the
+(n-th) zsmul of a is within ε of 0 in UnitAddCircle. -/
+lemma exists_n_in_ball (ε : ℝ) (hε : 0 < ε) :
+    ∃ n : ℤ, (n • a : UnitAddCircle) ∈ Metric.ball 0 ε := by
+  have h := dense_orbit_log_3_over_log_4
+  exact h.exists_mem_open Metric.isOpen_ball ⟨0, Metric.mem_ball_self hε⟩
 
-This is the corollary of dense orbit that we need for L9. We use the
-fact that the map n ↦ {n · a} (fractional part) is dense in [0, 1).
+/-- **Helper: round-to-nearest-integer bridge**.
 
-Specifically, we work with positive integers n : ℕ by considering n • a
-where the add action on UnitAddCircle restricts to ℕ-action via the
-canonical ℕ → ℤ inclusion. -/
-lemma exists_n_small_fract (ε : ℝ) (hε : 0 < ε) (hε1 : ε ≤ 1) :
-    ∃ n : ℕ, n > 0 ∧ Int.fract (n * (Real.log 3 / Real.log 4)) < ε := by
-  sorry
+If dist (↑x : UnitAddCircle) 0 < 1/2, then |x - round x| < 1/2 < 1.
+
+Proof: by UnitAddCircle.norm_eq, ‖(x : UnitAddCircle)‖ = |x - round x|.
+And dist ↑x 0 = ‖↑x - 0‖ = ‖↑x‖. So dist ↑x 0 < 1/2 ↔ |x - round x| < 1/2. -/
+lemma dist_lt_implies_close (x : ℝ) (h : (↑x : UnitAddCircle) ∈ Metric.ball 0 (1/2)) :
+    |x - round x| < 1/2 := by
+  rw [Metric.mem_ball, dist_eq_norm] at h
+  -- h : ‖↑x - 0‖ < 1/2
+  -- Convert ‖↑x - 0‖ to ‖↑x‖
+  simp only [sub_zero] at h
+  -- h : ‖↑x‖ < 1/2
+  -- Apply UnitAddCircle.norm_eq
+  rw [UnitAddCircle.norm_eq] at h
+  exact h
+
+/-- Helper: from `dist (↑x) 0 < 1/2`, get a real number m with |x - m| < 1/2. -/
+lemma exists_int_close (x : ℝ) (h : (↑x : UnitAddCircle) ∈ Metric.ball 0 (1/2)) :
+    ∃ m : ℤ, |x - m| < 1/2 := by
+  refine ⟨round x, ?_⟩
+  exact dist_lt_implies_close x h
 
 /-- **Step 3: L9 (close-scale lemma)**.
 
 For every N₀ : ℕ, there exist k, m : ℕ with min (3^k, 4^m) > N₀ and
 |3^k - 4^m| < min (3^k, 4^m) / 3.
 
-This is the close-scale lemma: we find k, m such that 3^k and 4^m are
-relatively close (within 1/3 of the smaller).
-
 Proof strategy:
-1. Apply dense orbit: for small ε > 0, ∃ k with {k · log 3 / log 4} < ε.
-2. Let m = floor(k · log 3 / log 4). Then |k · log 3 - m · log 4| < ε · log 4.
-3. Use exp_bound: |3^k - 4^m| ≤ 4^m · |exp((k log 3 - m log 4)) - 1|
+1. Apply dense orbit: for small ε > 0, ∃ k : ℕ with dist (k • a) 0 < ε.
+2. By norm_eq, |k · log 3 / log 4 - round (k · log 3 / log 4)| < ε.
+3. Set m = round (k · log 3 / log 4). Then |k log 3 - m log 4| < ε · log 4.
+4. Use exp_bound: |3^k - 4^m| ≤ 4^m · |exp((k log 3 - m log 4)) - 1|
                               ≤ 4^m · (ε · log 4)^2   (when ε · log 4 ≤ 1)
-4. Combined: |3^k - 4^m| / 4^m ≤ (ε · log 4)^2.
-5. Choose ε small enough that (ε · log 4)^2 < 1/3, e.g., ε = 0.4/log 4. -/
+5. Combined: |3^k - 4^m| / 4^m ≤ (ε · log 4)^2.
+6. Choose ε small enough that (ε · log 4)^2 < 1/3, e.g., ε = 0.4/log 4. -/
 theorem L9 (N₀ : ℕ) :
     ∃ k m : Nat, min (3 ^ k) (4 ^ m) > N₀ ∧
     |(3 ^ k : ℤ) - (4 ^ m : ℤ)| * 3 < min (3 ^ k) (4 ^ m) := by
-  -- Step 3a: Find k > 0 with fract(k · log 3 / log 4) < small ε
-  -- Step 3b: Set m = round(k · log 3 / log 4), so |k log 3 - m log 4| < ε log 4
-  -- Step 3c: Bound |3^k - 4^m| / min(3^k, 4^m) using exp_bound
   sorry
-
 end Erdos125Equidistribution
