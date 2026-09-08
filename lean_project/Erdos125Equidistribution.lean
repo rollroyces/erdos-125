@@ -259,6 +259,9 @@ theorem L9 :
   -- Case on which is smaller.
   rcases lt_or_ge ((3 : ℝ)^k) ((4 : ℝ)^l) with h3_lt_4 | h3_ge_4
   · -- Case 1: 3^k < 4^l, so min = 3^k.
+    -- First, refine to provide the witness n, m.
+    refine ⟨(n : ℤ), (m : ℤ), ?_⟩
+    -- We need to prove: |3^(n.natAbs) - 4^(m.natAbs)| · 3 < min (3^(n.natAbs)) (4^(m.natAbs))
     -- We need: |3^k - 4^l| · 3 < 3^k.
     -- By habs: = 4^l · |exp δ₁ - 1| · 3 < 3^k.
     -- We'll show exp δ₁ > 3/4, which gives |exp δ₁ - 1| = 1 - exp δ₁,
@@ -277,7 +280,6 @@ theorem L9 :
       have hre : Real.exp δ₁ < 1 := by
         have hrat : Real.exp δ₁ = (3 : ℝ)^k / (4 : ℝ)^l := by
           rw [h3_real, h4_real, ← Real.exp_sub]
-          ring
         rw [hrat]
         rw [div_lt_one h4_pos_real]
         exact h3_lt_4
@@ -355,17 +357,27 @@ theorem L9 :
       -- h₅ : -log 4 / 10 + log 4 - log 3 ≥ 0
       -- ↔ -log 4 / 10 ≥ log 3 - log 4 (the goal)
       -- Direct: rewrite the goal.
-      sorry
+      have h₆ : Real.log (3 / 4 : ℝ) = Real.log 3 - Real.log 4 := by
+        rw [Real.log_div]
+        · norm_num
+        · norm_num
+      rw [h₆]
+      linarith [h₅]
     -- δ₁ > -log 4 / 10 ≥ log (3/4), so δ₁ > log (3/4)
     have hδ₁_gt_log34 : δ₁ > Real.log (3 / 4 : ℝ) := by
-      have h : -Real.log 4 / 10 > Real.log (3 / 4 : ℝ) := lt_of_lt_of_le hδ₁_gt_neg hkey
-      exact lt_of_lt_of_le h hδ₁_gt_neg
+      exact lt_of_le_of_lt hkey hδ₁_gt_neg
     -- exp δ₁ > 3/4
     have hexp_δ₁_gt_3_4 : Real.exp δ₁ > (3 / 4 : ℝ) := by
       rw [← Real.exp_log (by norm_num : (0:ℝ) < 3/4)]
       exact (Real.exp_strictMono).lt_iff_lt.mpr hδ₁_gt_log34
     -- Now reduce the goal.
-    rw [habs, h_abs_exp]
+    -- The goal is: |(3 : ℝ)^(n.natAbs) - (4 : ℝ)^(m.natAbs)| * 3 < min ((3 : ℕ)^(n.natAbs)) ((4 : ℕ)^(m.natAbs))
+    -- We can rewrite the LHS using habs, but first we need n.natAbs to look like k.
+    -- n is an arbitrary ℤ (could be 0 or negative), so n.natAbs is (n if n ≥ 0 else -n).
+    -- This makes direct unfolding tricky.
+    -- Instead, let's work in reals: prove the inequality in reals first, then push_cast.
+    -- Actually let's just use exact_mod_cast at the end.
+    sorry
     -- Goal: 3 · 4^l · (1 - exp δ₁) < 3^k
     -- By hkey (the identity 3^k - 4^l = 4^l · (exp δ₁ - 1)),
     -- 3^k = 4^l + 4^l · (exp δ₁ - 1) = 4^l · exp δ₁.
@@ -383,6 +395,23 @@ theorem L9 :
     -- This is equivalent to hexp_δ₁_gt_3_4 : exp δ₁ > 3/4.
     rw [gt_iff_lt] at hexp_δ₁_gt_3_4
     linarith [hexp_δ₁_gt_3_4]
+    -- Now wrap up Case 1 with the integer witness.
+    refine ⟨(n : ℤ), (m : ℤ), ?_⟩
+    have hmin : ((min ((3 : ℕ)^k) ((4 : ℕ)^l) : ℕ) : ℝ) = (3 : ℝ)^k := by
+      rw [min_eq_left (le_of_lt h3_lt_4)]
+    -- Need to push to integers. The goal is the L9 conclusion.
+    -- Strategy: prove the real form, then mod_cast.
+    have hmin_eq_int : (min ((3 : ℕ)^(n.natAbs)) ((4 : ℕ)^(m.natAbs)) : ℤ) = (3 : ℤ)^k := by
+      have e1 : (3 : ℕ) ^ n.natAbs = (3 : ℕ) ^ k := by simp only [k]
+      have e2 : (4 : ℕ) ^ m.natAbs = (4 : ℕ) ^ l := by simp only [l]
+      simp only [e1, e2, k, l]
+      rw [Nat.cast_min, Nat.cast_min]
+    rw [hmin_eq_int]
+    have hnat : (|((3 : ℤ)^k - (4 : ℤ)^l)| : ℤ) * 3 < (3 : ℤ)^k := by
+      rw [show ((|((3 : ℤ)^k - (4 : ℤ)^l)| : ℤ) : ℝ) = |(3 : ℝ)^k - (4 : ℝ)^l| by norm_num]
+      rw [habs]
+      exact_mod_cast hmul
+    exact hnat
   · -- Case 2: 3^k ≥ 4^l, so min = 4^l.
     -- We need: 4^l · |exp δ₁ - 1| · 3 < 4^l, i.e., |exp δ₁ - 1| < 1/3.
     -- We have this! Just multiplication.
@@ -395,7 +424,33 @@ theorem L9 :
         exact mul_lt_mul_of_pos_left hexp_δ₁_lt h4_pos_real
       linarith
     -- Convert back to integers.
-    -- Goal: |((3 : ℤ)^(n.natAbs) - (4 : ℤ)^(m.natAbs) : ℤ)| * 3 < (min ((3 : ℕ)^(n.natAbs)) ((4 : ℕ)^(m.natAbs)) : ℤ)
-    -- This requires a cast/conversion of the real inequality to integer.
+    refine ⟨(n : ℤ), (m : ℤ), ?_⟩
+    -- Use k, l in reals first, then push_cast.
+    have hmin_eq : (min ((3 : ℕ)^(n.natAbs)) ((4 : ℕ)^(m.natAbs)) : ℕ) =
+                   (min ((3 : ℕ)^k) ((4 : ℕ)^l) : ℕ) := by
+      simp only [k, l]
+    have hmin : (min (↑3 ^ n.natAbs) (↑4 ^ m.natAbs) : ℤ) =
+               (min (↑3 ^ k) (↑4 ^ l) : ℤ) := by
+      -- n.natAbs = k definitionally (via set), but Lean doesn't unfold it.
+      -- Just use hmin_eq and `Nat.cast` lemmas.
+      have e1 : (3 : ℕ) ^ n.natAbs = (3 : ℕ) ^ k := by
+        simp only [k]
+      have e2 : (4 : ℕ) ^ m.natAbs = (4 : ℕ) ^ l := by
+        simp only [l]
+      simp only [e1, e2, k, l]
+    erw [hmin]
+    rw [min_eq_right]
+    -- Goal: |3^(n.natAbs) - 4^(m.natAbs)| * 3 < (4 : ℤ)^(m.natAbs) (after min_eq_right)
+    -- But we also need h3_ge_4 to be cast properly.
+    have hge : (4 : ℤ) ^ m.natAbs ≤ (3 : ℤ) ^ n.natAbs := by
+      exact_mod_cast h3_ge_4
+    -- Now prove the inequality.
+    -- Convert 4^l (in ℕ) to 4^m.natAbs (in ℤ) — they're equal by `l`.
+    -- The goal is in ℕ: 4^l where l = m.natAbs.
+    -- But the type shows 4^l, not 4^m.natAbs. Let me make them match.
+    -- After `rw [min_eq_right]`, the goal's RHS is `4^l` (in ℕ). But the LHS uses
+    -- n.natAbs, m.natAbs. Let me first push cast to make everything ℤ.
+    norm_cast
+    -- Now the goal is something with Int.subNatNat etc. Just use norm_cast.
+    -- Actually, let me just close it using exact_mod_cast hmul.
     sorry
-end Erdos125Equidistribution
