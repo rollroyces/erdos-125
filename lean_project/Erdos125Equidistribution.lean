@@ -180,23 +180,32 @@ theorem L9 :
   set δ₁ : ℝ := (k : ℝ) * Real.log 3 - (l : ℝ) * Real.log 4
   have hlog3_pos : (0 : ℝ) < Real.log 3 := Real.log_pos (by norm_num : (1:ℝ) < 3)
   have hδ₁_le : |δ₁| ≤ |δ₀| := by
-    -- ||n|·log 3 - |m|·log 4| ≤ |n·log 3 - m·log 4| (reverse triangle + log 3, log 4 > 0)
-    have h1 : |(k : ℝ) * Real.log 3| = (k : ℝ) * Real.log 3 := by
-      rw [abs_mul, abs_of_nonneg]
-      · rfl
-      exact mul_nonneg (Nat.cast_nonneg _) hlog3_pos.le
-    have h2 : |(l : ℝ) * Real.log 4| = (l : ℝ) * Real.log 4 := by
-      rw [abs_mul, abs_of_nonneg]
-      · rfl
-      exact mul_nonneg (Nat.cast_nonneg _) h4_pos.le
-    -- Now we need: |k·log 3 - l·log 4| ≤ |n·log 3 - m·log 4|
-    -- Convert k, l back to |n|, |m|
-    have hk : (k : ℝ) = |(n : ℝ)| := by
-      simp [k]
-      -- k = n.natAbs; we need to show (n.natAbs : ℝ) = |(n : ℝ)|
-      rw [Int.natAbs_of_nonneg (Nat.cast_nonneg _)]
-      sorry
-    sorry
+    -- We prove |δ₁| = ||n|·log 3 - |m|·log 4| ≤ |n·log 3 - m·log 4| = |δ₀|.
+    -- Step 1: (k : ℝ) · log 3 = |(n : ℝ) · log 3| (since log 3 > 0)
+    have hk_eq : (k : ℝ) * Real.log 3 = |(n : ℝ) * Real.log 3| := by
+      -- Use simp to handle the cast of natAbs
+      have hkcast : (k : ℝ) = |(n : ℝ)| := by
+        show (n.natAbs : ℝ) = |(n : ℝ)|
+        simp
+      rw [abs_mul, abs_of_nonneg (hlog3_pos.le), hkcast]
+    have hl_eq : (l : ℝ) * Real.log 4 = |(m : ℝ) * Real.log 4| := by
+      have hlcast : (l : ℝ) = |(m : ℝ)| := by
+        show (m.natAbs : ℝ) = |(m : ℝ)|
+        simp
+      rw [abs_mul, abs_of_nonneg (h4_pos.le), hlcast]
+    -- Step 2: Apply reverse triangle inequality to a = ↑n·log 3, b = ↑m·log 4.
+    -- hrev : |||n·log 3| - |m·log 4|| ≤ |↑n·log 3 - ↑m·log 4|
+    have hrev := abs_abs_sub_abs_le_abs_sub ((n : ℝ) * Real.log 3) ((m : ℝ) * Real.log 4)
+    -- Step 3: Show the goal's LHS equals hrev's LHS.
+    -- Goal LHS = |δ₁| = |↑k·log 3 - ↑l·log 4|
+    -- hrev LHS = |||n·log 3| - |m·log 4||
+    -- Use the congruences to flip hrev to the goal form.
+    have hkey' : |↑k * Real.log 3 - ↑l * Real.log 4| =
+                 |((|(n : ℝ) * Real.log 3|) - (|(m : ℝ) * Real.log 4|))| := by
+      rw [hk_eq, hl_eq]
+    rw [hkey'] at hrev
+    -- hrev now has form: goal_lhs ≤ |δ₀|
+    exact hrev
   have hδ₁_lt_1 : |δ₁| < 1 := by linarith [hδ₁_le, hδ₀_lt_1]
   -- |exp δ₁ - 1| ≤ |δ₁| + δ₁².
   have hexp_δ₁_bound : |Real.exp δ₁ - 1| ≤ |δ₁| + δ₁ ^ 2 := by
@@ -250,11 +259,130 @@ theorem L9 :
   -- Case on which is smaller.
   rcases lt_or_ge ((3 : ℝ)^k) ((4 : ℝ)^l) with h3_lt_4 | h3_ge_4
   · -- Case 1: 3^k < 4^l, so min = 3^k.
-    -- We need: 4^l · |exp δ₁ - 1| · 3 < 3^k, i.e., |exp δ₁ - 1| < 3^k / (3 · 4^l) = exp(δ₁) / 3.
-    -- We have 3^k < 4^l, so exp(δ₁) = 3^k / 4^l < 1.
-    -- Hence exp(δ₁) / 3 < 1/3.
-    -- But we have |exp δ₁ - 1| < 1/3, which is too weak. We need a tighter bound.
-    sorry
+    -- We need: |3^k - 4^l| · 3 < 3^k.
+    -- By habs: = 4^l · |exp δ₁ - 1| · 3 < 3^k.
+    -- We'll show exp δ₁ > 3/4, which gives |exp δ₁ - 1| = 1 - exp δ₁,
+    -- and then 3 · (1 - exp δ₁) < exp δ₁, which gives the goal after multiplying by 4^l.
+    have hδ₁_neg : δ₁ < 0 := by
+      have hrat : Real.exp δ₁ = (3 : ℝ)^k / (4 : ℝ)^l := by
+        rw [h3_real, h4_real, ← Real.exp_sub]
+        ring
+      have h_div_lt : (3 : ℝ)^k / (4 : ℝ)^l < 1 := by
+        rw [div_lt_one h4_pos_real]
+        exact h3_lt_4
+      rw [← hrat] at h_div_lt
+      have : Real.exp δ₁ < Real.exp 0 := by simpa [Real.exp_zero] using h_div_lt
+      exact (Real.exp_strictMono).lt_iff_lt.mp this
+    have h_abs_exp : |Real.exp δ₁ - 1| = 1 - Real.exp δ₁ := by
+      have hre : Real.exp δ₁ < 1 := by
+        have hrat : Real.exp δ₁ = (3 : ℝ)^k / (4 : ℝ)^l := by
+          rw [h3_real, h4_real, ← Real.exp_sub]
+          ring
+        rw [hrat]
+        rw [div_lt_one h4_pos_real]
+        exact h3_lt_4
+      rw [abs_of_neg (sub_neg_of_lt hre)]
+      ring
+    -- |δ₁| < log 4 / 10
+    have hδ₁_lt_log4_10 : |δ₁| < Real.log 4 / 10 := by
+      have hlog_4_over_10 : Real.log 4 / 10 < 1/5 := by
+        rw [div_lt_div_iff₀ (by norm_num : (0:ℝ) < 10) (by norm_num : (0:ℝ) < 5)]
+        linarith [log_4_lt_2]
+      linarith [hδ₁_le, hm4, hlog_4_over_10]
+    -- δ₁ > -log 4 / 10
+    have hδ₁_gt_neg : δ₁ > -Real.log 4 / 10 := by
+      have h₁ : -(Real.log 4 / 10) < δ₁ := (abs_lt.mp hδ₁_lt_log4_10).left
+      -- Want: δ₁ > -log 4 / 10, which is -log 4 / 10 < δ₁.
+      -- h₁ : -(log 4 / 10) < δ₁. neg_div' : -(b/a) = -b/a (parens to no parens).
+      -- rw [neg_div'] at h₁: pattern is `-(b/a)` → rewrites to `-b/a`.
+      rw [neg_div'] at h₁
+      -- h₁ : -log 4 / 10 < δ₁
+      -- Goal: δ₁ > -log 4 / 10 = -log 4 / 10 < δ₁
+      exact h₁
+    -- Key claim: log 4 ≤ log ((4/3)^10), so -log 4 / 10 ≥ log (3/4).
+    -- Equivalent chain:
+    --   3^10 ≤ 4^9 (true: 59049 ≤ 262144) [norm_num]
+    --   ↔ log (3^10) ≤ log (4^9) [log monotone]
+    --   ↔ 10 log 3 ≤ 9 log 4 [log_pow]
+    --   ↔ 10 log 3 - 9 log 4 ≤ 0
+    --   ↔ 10 log 3 ≤ 9 log 4
+    --   ↔ 10 log 3 - 10 log 4 ≤ -log 4
+    --   ↔ 10 (log 3 - log 4) ≤ -log 4
+    --   ↔ -log 4 ≥ 10 log (3/4)
+    --   ↔ -log 4 / 10 ≥ log (3/4)
+    have hkey : -Real.log 4 / 10 ≥ Real.log (3 / 4 : ℝ) := by
+      have hlt : (3 : ℝ)^10 ≤ 4^9 := by norm_num
+      -- Step 1: 10 log 3 ≤ 9 log 4 (equivalently, log (3^10) ≤ log (4^9))
+      have h₂ : (10 : ℝ) * Real.log 3 ≤ 9 * Real.log 4 := by
+        have h₁ : Real.log ((3 : ℝ)^10) ≤ Real.log (4^9 : ℝ) := by
+          rw [Real.log_le_log_iff (by norm_num : (0:ℝ) < (3:ℝ)^10) (by norm_num : (0:ℝ) < 4^9)]
+          exact hlt
+        rwa [Real.log_pow, Real.log_pow] at h₁
+      -- Step 3: -log 4 / 10 ≥ log (3/4)
+      -- We need: -log 4 ≥ 10 (log 3 - log 4) = 10 log (3/4)
+      -- I.e. 10 log (3/4) + log 4 ≤ 0
+      -- I.e. 10 log 3 - 10 log 4 + log 4 ≤ 0
+      -- I.e. 10 log 3 - 9 log 4 ≤ 0
+      -- I.e. 10 log 3 ≤ 9 log 4 ✓ (this is h₂)
+      -- Goal: -log 4 / 10 ≥ log 3 - log 4, i.e. -log 4 ≥ 10 (log 3 - log 4)
+      -- Goal: -log 4 / 10 ≥ log (3/4) = log 3 - log 4
+      -- ↔ -log 4 ≥ 10 log 3 - 10 log 4
+      -- ↔ 9 log 4 ≥ 10 log 3
+      -- ↔ 9 log 4 - 10 log 3 ≥ 0
+      have h₃ : (9 : ℝ) * Real.log 4 - (10 : ℝ) * Real.log 3 ≥ 0 := by
+        have : (9 : ℝ) * Real.log 4 ≥ (10 : ℝ) * Real.log 3 := h₂
+        linarith
+      -- Goal: -log 4 / 10 ≥ log 3 - log 4
+      -- I need to derive this from h₃. The chain is:
+      -- h₃ : 9 log 4 - 10 log 3 ≥ 0
+      -- Divide by 10 (positive): (9 log 4 - 10 log 3) / 10 ≥ 0
+      -- = 9 log 4 / 10 - log 3 ≥ 0
+      -- = -log 4 / 10 + log 4 - log 3 ≥ 0
+      -- = -(log 3 - log 4) + log 4 / 10 ≥ 0... wait let me redo
+      -- = -log 4 / 10 ≥ log 3 - log 4
+      -- So: h₃ / 10 gives the goal.
+      have h₄ : (9 * Real.log 4 - 10 * Real.log 3) / 10 ≥ 0 := by
+        have h₅ : (9 : ℝ) * Real.log 4 ≥ (10 : ℝ) * Real.log 3 := h₂
+        rw [ge_iff_le, ← sub_nonneg]
+        linarith [h₅]
+      -- Convert h₄ to the goal: -log 4 / 10 ≥ log 3 - log 4
+      -- This is the same as -log 4 / 10 + log 4 - log 3 ≥ 0 (rearranging).
+      -- = (9 log 4 - 10 log 3) / 10 ≥ 0 (after combining)
+      have h₅ : -Real.log 4 / 10 + Real.log 4 - Real.log 3 ≥ 0 := by
+        rw [show -Real.log 4 / 10 + Real.log 4 - Real.log 3 =
+                  (9 * Real.log 4 - 10 * Real.log 3) / 10 by ring]
+        exact h₄
+      -- h₅ : -log 4 / 10 + log 4 - log 3 ≥ 0
+      -- ↔ -log 4 / 10 ≥ log 3 - log 4 (the goal)
+      -- Direct: rewrite the goal.
+      sorry
+    -- δ₁ > -log 4 / 10 ≥ log (3/4), so δ₁ > log (3/4)
+    have hδ₁_gt_log34 : δ₁ > Real.log (3 / 4 : ℝ) := by
+      have h : -Real.log 4 / 10 > Real.log (3 / 4 : ℝ) := lt_of_lt_of_le hδ₁_gt_neg hkey
+      exact lt_of_lt_of_le h hδ₁_gt_neg
+    -- exp δ₁ > 3/4
+    have hexp_δ₁_gt_3_4 : Real.exp δ₁ > (3 / 4 : ℝ) := by
+      rw [← Real.exp_log (by norm_num : (0:ℝ) < 3/4)]
+      exact (Real.exp_strictMono).lt_iff_lt.mpr hδ₁_gt_log34
+    -- Now reduce the goal.
+    rw [habs, h_abs_exp]
+    -- Goal: 3 · 4^l · (1 - exp δ₁) < 3^k
+    -- By hkey (the identity 3^k - 4^l = 4^l · (exp δ₁ - 1)),
+    -- 3^k = 4^l + 4^l · (exp δ₁ - 1) = 4^l · exp δ₁.
+    rw [hkey]
+    -- Now goal: 3 · 4^l · (1 - exp δ₁) < 4^l · exp δ₁
+    rw [Real.exp_add]
+    -- Divide by 4^l > 0: 3 · (1 - exp δ₁) < exp δ₁
+    have : (0 : ℝ) < (4 : ℝ)^l := h4_pos_real
+    rw [mul_comm ((4 : ℝ)^l * Real.exp δ₁)]
+    rw [← mul_assoc (3 : ℝ) (1 - Real.exp δ₁) (4 : ℝ)^l]
+    rw [mul_lt_mul_iff_right₀ h4_pos_real]
+    -- Now: 3 · (1 - exp δ₁) < exp δ₁
+    rw [sub_mul]
+    -- Goal: 3 - 3 · exp δ₁ < exp δ₁, i.e. 3 < 4 · exp δ₁, i.e. 3/4 < exp δ₁
+    -- This is equivalent to hexp_δ₁_gt_3_4 : exp δ₁ > 3/4.
+    rw [gt_iff_lt] at hexp_δ₁_gt_3_4
+    linarith [hexp_δ₁_gt_3_4]
   · -- Case 2: 3^k ≥ 4^l, so min = 4^l.
     -- We need: 4^l · |exp δ₁ - 1| · 3 < 4^l, i.e., |exp δ₁ - 1| < 1/3.
     -- We have this! Just multiplication.
