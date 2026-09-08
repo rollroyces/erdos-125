@@ -89,7 +89,6 @@ theorem L9 (N₀ : ℕ) :
   -- n • a = n • (QuotientAddGroup.mk (log 3 / log 4)) = QuotientAddGroup.mk (n • (log 3 / log 4))
   -- So we have ↑(n • (log 3 / log 4)) ∈ Metric.ball 0 (1/2)
   have hn' : (↑(n • (Real.log 3 / Real.log 4)) : UnitAddCircle) ∈ Metric.ball 0 (1/2) := by
-    -- Manually unfold a and apply coe_zsmul
     change (n • QuotientAddGroup.mk (Real.log 3 / Real.log 4) : UnitAddCircle) ∈ Metric.ball 0 (1/2) at hn
     have h : (n • QuotientAddGroup.mk (Real.log 3 / Real.log 4) : UnitAddCircle) =
              (↑(n • (Real.log 3 / Real.log 4)) : UnitAddCircle) := by
@@ -99,5 +98,17 @@ theorem L9 (N₀ : ℕ) :
   -- Step 3c: Get a real number m close to n • (log 3 / log 4)
   obtain ⟨m, hm⟩ := exists_int_close (n • (Real.log 3 / Real.log 4)) hn'
   -- hm : |n • (log 3 / log 4) - m| < 1/2
+  -- Step 3d: Convert n • x to n * x (since n : ℤ)
+  have hmul : (n • (Real.log 3 / Real.log 4)) = (n : ℝ) * (Real.log 3 / Real.log 4) := by
+    rw [zsmul_eq_mul]
+  rw [hmul] at hm
+  -- hm : |↑n * (log 3 / log 4) - ↑m| < 1/2
+  -- Multiply through by log 4: |↑n * log 3 - ↑m * log 4| < log 4 / 2
+  have h4_pos : (0 : ℝ) < Real.log 4 := Real.log_pos (by norm_num : (1 : ℝ) < 4)
+  have hm4 : |(↑n : ℝ) * Real.log 3 - (↑m : ℝ) * Real.log 4| < Real.log 4 / 2 := by
+    have key : ((↑n : ℝ) * (Real.log 3 / Real.log 4) - (↑m : ℝ)) * Real.log 4 =
+               (↑n : ℝ) * Real.log 3 - (↑m : ℝ) * Real.log 4 := by field_simp
+    rw [← key, abs_mul, abs_of_pos h4_pos]
+    linarith [mul_lt_mul_of_pos_right hm h4_pos]
   sorry
 end Erdos125Equidistribution
