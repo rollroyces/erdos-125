@@ -80,15 +80,17 @@ lemma log_4_lt_2 : Real.log 4 < 2 := by
   linarith
 
 /-- **Reverse triangle inequality for reals**: `‖|a| - |b|‖ ≤ |a - b|`. -/
-lemma abs_abs_sub_abs_le_abs_sub (a b : ℝ) : | |a| - |b| | ≤ |a - b| := by
+lemma abs_abs_sub_abs_le_abs_sub (a b : ℝ) : ‖|a| - |b|‖ ≤ |a - b| := by
   have h1 : |a| ≤ |a - b| + |b| := by
-    rw [← abs_neg (b - a), sub_neg_eq_add]
-    exact le_add_of_nonneg_left (abs_nonneg b)
+    rw [show |a| = |a - b + b| from by rw [show a = a - b + b from by ring]; congr; ring]
+    exact abs_add_le (a - b) b
   have h2 : |b| ≤ |a - b| + |a| := by
-    exact le_add_of_nonneg_left (abs_nonneg a)
+    rw [show |b| = |b - a + a| from by rw [show b = b - a + a from by ring]; congr; ring]
+    rw [abs_sub_comm]
+    exact abs_add_le (b - a) a
   have h3 : |a| - |b| ≤ |a - b| := by linarith
   have h4 : |b| - |a| ≤ |a - b| := by linarith
-  rw [abs_le]
+  rw [show ‖|a| - |b|‖ = abs (|a| - |b|) from rfl, abs_le]
   constructor <;> linarith
 
 /-- **Step 3: L9 (close-scale lemma)** — STATEMENT.
@@ -198,11 +200,11 @@ theorem L9 :
     have hrev := abs_abs_sub_abs_le_abs_sub ((n : ℝ) * Real.log 3) ((m : ℝ) * Real.log 4)
     -- Step 3: Show the goal's LHS equals hrev's LHS.
     -- Goal LHS = |δ₁| = |↑k·log 3 - ↑l·log 4|
-    -- hrev LHS = |||n·log 3| - |m·log 4||
+    -- hrev LHS = ‖|↑n·log 3| - |↑m·log 4‖
     -- Use the congruences to flip hrev to the goal form.
-    have hkey' : |↑k * Real.log 3 - ↑l * Real.log 4| =
-                 |((|(n : ℝ) * Real.log 3|) - (|(m : ℝ) * Real.log 4|))| := by
-      rw [hk_eq, hl_eq]
+    have hkey' : ‖|↑n * Real.log 3| - |↑m * Real.log 4|‖ = ‖↑k * Real.log 3 - ↑l * Real.log 4‖ := by
+      show abs (|↑n * Real.log 3| - |↑m * Real.log 4|) = abs (↑k * Real.log 3 - ↑l * Real.log 4)
+      rw [abs_sub_comm, ← hk_eq, ← hl_eq, abs_sub_comm]
     rw [hkey'] at hrev
     -- hrev now has form: goal_lhs ≤ |δ₀|
     exact hrev
@@ -262,14 +264,11 @@ theorem L9 :
     -- First, refine to provide the witness n, m.
     refine ⟨(n : ℤ), (m : ℤ), ?_⟩
     -- We need to prove: |3^(n.natAbs) - 4^(m.natAbs)| · 3 < min (3^(n.natAbs)) (4^(m.natAbs))
-    -- We need: |3^k - 4^l| · 3 < 3^k.
-    -- By habs: = 4^l · |exp δ₁ - 1| · 3 < 3^k.
     -- We'll show exp δ₁ > 3/4, which gives |exp δ₁ - 1| = 1 - exp δ₁,
     -- and then 3 · (1 - exp δ₁) < exp δ₁, which gives the goal after multiplying by 4^l.
     have hδ₁_neg : δ₁ < 0 := by
       have hrat : Real.exp δ₁ = (3 : ℝ)^k / (4 : ℝ)^l := by
-        rw [h3_real, h4_real, ← Real.exp_sub]
-        ring
+        rw [Real.exp_sub, ← h3_real, ← h4_real]
       have h_div_lt : (3 : ℝ)^k / (4 : ℝ)^l < 1 := by
         rw [div_lt_one h4_pos_real]
         exact h3_lt_4
@@ -279,7 +278,7 @@ theorem L9 :
     have h_abs_exp : |Real.exp δ₁ - 1| = 1 - Real.exp δ₁ := by
       have hre : Real.exp δ₁ < 1 := by
         have hrat : Real.exp δ₁ = (3 : ℝ)^k / (4 : ℝ)^l := by
-          rw [h3_real, h4_real, ← Real.exp_sub]
+          rw [Real.exp_sub, ← h3_real, ← h4_real]
         rw [hrat]
         rw [div_lt_one h4_pos_real]
         exact h3_lt_4
@@ -294,69 +293,24 @@ theorem L9 :
     -- δ₁ > -log 4 / 10
     have hδ₁_gt_neg : δ₁ > -Real.log 4 / 10 := by
       have h₁ : -(Real.log 4 / 10) < δ₁ := (abs_lt.mp hδ₁_lt_log4_10).left
-      -- Want: δ₁ > -log 4 / 10, which is -log 4 / 10 < δ₁.
-      -- h₁ : -(log 4 / 10) < δ₁. neg_div' : -(b/a) = -b/a (parens to no parens).
-      -- rw [neg_div'] at h₁: pattern is `-(b/a)` → rewrites to `-b/a`.
       rw [neg_div'] at h₁
-      -- h₁ : -log 4 / 10 < δ₁
-      -- Goal: δ₁ > -log 4 / 10 = -log 4 / 10 < δ₁
       exact h₁
-    -- Key claim: log 4 ≤ log ((4/3)^10), so -log 4 / 10 ≥ log (3/4).
-    -- Equivalent chain:
-    --   3^10 ≤ 4^9 (true: 59049 ≤ 262144) [norm_num]
-    --   ↔ log (3^10) ≤ log (4^9) [log monotone]
-    --   ↔ 10 log 3 ≤ 9 log 4 [log_pow]
-    --   ↔ 10 log 3 - 9 log 4 ≤ 0
-    --   ↔ 10 log 3 ≤ 9 log 4
-    --   ↔ 10 log 3 - 10 log 4 ≤ -log 4
-    --   ↔ 10 (log 3 - log 4) ≤ -log 4
-    --   ↔ -log 4 ≥ 10 log (3/4)
-    --   ↔ -log 4 / 10 ≥ log (3/4)
-    have hkey : -Real.log 4 / 10 ≥ Real.log (3 / 4 : ℝ) := by
+    -- Key claim: 3^10 ≤ 4^9 so -log 4 / 10 ≥ log (3/4).
+    have hkey34 : -Real.log 4 / 10 ≥ Real.log (3 / 4 : ℝ) := by
       have hlt : (3 : ℝ)^10 ≤ 4^9 := by norm_num
-      -- Step 1: 10 log 3 ≤ 9 log 4 (equivalently, log (3^10) ≤ log (4^9))
       have h₂ : (10 : ℝ) * Real.log 3 ≤ 9 * Real.log 4 := by
         have h₁ : Real.log ((3 : ℝ)^10) ≤ Real.log (4^9 : ℝ) := by
           rw [Real.log_le_log_iff (by norm_num : (0:ℝ) < (3:ℝ)^10) (by norm_num : (0:ℝ) < 4^9)]
           exact hlt
         rwa [Real.log_pow, Real.log_pow] at h₁
-      -- Step 3: -log 4 / 10 ≥ log (3/4)
-      -- We need: -log 4 ≥ 10 (log 3 - log 4) = 10 log (3/4)
-      -- I.e. 10 log (3/4) + log 4 ≤ 0
-      -- I.e. 10 log 3 - 10 log 4 + log 4 ≤ 0
-      -- I.e. 10 log 3 - 9 log 4 ≤ 0
-      -- I.e. 10 log 3 ≤ 9 log 4 ✓ (this is h₂)
-      -- Goal: -log 4 / 10 ≥ log 3 - log 4, i.e. -log 4 ≥ 10 (log 3 - log 4)
-      -- Goal: -log 4 / 10 ≥ log (3/4) = log 3 - log 4
-      -- ↔ -log 4 ≥ 10 log 3 - 10 log 4
-      -- ↔ 9 log 4 ≥ 10 log 3
-      -- ↔ 9 log 4 - 10 log 3 ≥ 0
-      have h₃ : (9 : ℝ) * Real.log 4 - (10 : ℝ) * Real.log 3 ≥ 0 := by
-        have : (9 : ℝ) * Real.log 4 ≥ (10 : ℝ) * Real.log 3 := h₂
-        linarith
-      -- Goal: -log 4 / 10 ≥ log 3 - log 4
-      -- I need to derive this from h₃. The chain is:
-      -- h₃ : 9 log 4 - 10 log 3 ≥ 0
-      -- Divide by 10 (positive): (9 log 4 - 10 log 3) / 10 ≥ 0
-      -- = 9 log 4 / 10 - log 3 ≥ 0
-      -- = -log 4 / 10 + log 4 - log 3 ≥ 0
-      -- = -(log 3 - log 4) + log 4 / 10 ≥ 0... wait let me redo
-      -- = -log 4 / 10 ≥ log 3 - log 4
-      -- So: h₃ / 10 gives the goal.
       have h₄ : (9 * Real.log 4 - 10 * Real.log 3) / 10 ≥ 0 := by
         have h₅ : (9 : ℝ) * Real.log 4 ≥ (10 : ℝ) * Real.log 3 := h₂
         rw [ge_iff_le, ← sub_nonneg]
         linarith [h₅]
-      -- Convert h₄ to the goal: -log 4 / 10 ≥ log 3 - log 4
-      -- This is the same as -log 4 / 10 + log 4 - log 3 ≥ 0 (rearranging).
-      -- = (9 log 4 - 10 log 3) / 10 ≥ 0 (after combining)
       have h₅ : -Real.log 4 / 10 + Real.log 4 - Real.log 3 ≥ 0 := by
         rw [show -Real.log 4 / 10 + Real.log 4 - Real.log 3 =
                   (9 * Real.log 4 - 10 * Real.log 3) / 10 by ring]
         exact h₄
-      -- h₅ : -log 4 / 10 + log 4 - log 3 ≥ 0
-      -- ↔ -log 4 / 10 ≥ log 3 - log 4 (the goal)
-      -- Direct: rewrite the goal.
       have h₆ : Real.log (3 / 4 : ℝ) = Real.log 3 - Real.log 4 := by
         rw [Real.log_div]
         · norm_num
@@ -365,92 +319,79 @@ theorem L9 :
       linarith [h₅]
     -- δ₁ > -log 4 / 10 ≥ log (3/4), so δ₁ > log (3/4)
     have hδ₁_gt_log34 : δ₁ > Real.log (3 / 4 : ℝ) := by
-      exact lt_of_le_of_lt hkey hδ₁_gt_neg
+      exact lt_of_le_of_lt hkey34 hδ₁_gt_neg
     -- exp δ₁ > 3/4
     have hexp_δ₁_gt_3_4 : Real.exp δ₁ > (3 / 4 : ℝ) := by
       rw [← Real.exp_log (by norm_num : (0:ℝ) < 3/4)]
       exact (Real.exp_strictMono).lt_iff_lt.mpr hδ₁_gt_log34
-    -- Now reduce the goal.
-    -- The goal is: |(3 : ℝ)^(n.natAbs) - (4 : ℝ)^(m.natAbs)| * 3 < min ((3 : ℕ)^(n.natAbs)) ((4 : ℕ)^(m.natAbs))
-    -- We can rewrite the LHS using habs, but first we need n.natAbs to look like k.
-    -- n is an arbitrary ℤ (could be 0 or negative), so n.natAbs is (n if n ≥ 0 else -n).
-    -- This makes direct unfolding tricky.
-    -- Instead, let's work in reals: prove the inequality in reals first, then push_cast.
-    -- Actually let's just use exact_mod_cast at the end.
-    sorry
-    -- Goal: 3 · 4^l · (1 - exp δ₁) < 3^k
-    -- By hkey (the identity 3^k - 4^l = 4^l · (exp δ₁ - 1)),
-    -- 3^k = 4^l + 4^l · (exp δ₁ - 1) = 4^l · exp δ₁.
-    rw [hkey]
-    -- Now goal: 3 · 4^l · (1 - exp δ₁) < 4^l · exp δ₁
-    rw [Real.exp_add]
-    -- Divide by 4^l > 0: 3 · (1 - exp δ₁) < exp δ₁
-    have : (0 : ℝ) < (4 : ℝ)^l := h4_pos_real
-    rw [mul_comm ((4 : ℝ)^l * Real.exp δ₁)]
-    rw [← mul_assoc (3 : ℝ) (1 - Real.exp δ₁) (4 : ℝ)^l]
-    rw [mul_lt_mul_iff_right₀ h4_pos_real]
-    -- Now: 3 · (1 - exp δ₁) < exp δ₁
-    rw [sub_mul]
-    -- Goal: 3 - 3 · exp δ₁ < exp δ₁, i.e. 3 < 4 · exp δ₁, i.e. 3/4 < exp δ₁
-    -- This is equivalent to hexp_δ₁_gt_3_4 : exp δ₁ > 3/4.
-    rw [gt_iff_lt] at hexp_δ₁_gt_3_4
-    linarith [hexp_δ₁_gt_3_4]
-    -- Now wrap up Case 1 with the integer witness.
-    refine ⟨(n : ℤ), (m : ℤ), ?_⟩
-    have hmin : ((min ((3 : ℕ)^k) ((4 : ℕ)^l) : ℕ) : ℝ) = (3 : ℝ)^k := by
-      rw [min_eq_left (le_of_lt h3_lt_4)]
-    -- Need to push to integers. The goal is the L9 conclusion.
-    -- Strategy: prove the real form, then mod_cast.
-    have hmin_eq_int : (min ((3 : ℕ)^(n.natAbs)) ((4 : ℕ)^(m.natAbs)) : ℤ) = (3 : ℤ)^k := by
-      have e1 : (3 : ℕ) ^ n.natAbs = (3 : ℕ) ^ k := by simp only [k]
-      have e2 : (4 : ℕ) ^ m.natAbs = (4 : ℕ) ^ l := by simp only [l]
-      simp only [e1, e2, k, l]
-      rw [Nat.cast_min, Nat.cast_min]
-    rw [hmin_eq_int]
-    have hnat : (|((3 : ℤ)^k - (4 : ℤ)^l)| : ℤ) * 3 < (3 : ℤ)^k := by
-      rw [show ((|((3 : ℤ)^k - (4 : ℤ)^l)| : ℤ) : ℝ) = |(3 : ℝ)^k - (4 : ℝ)^l| by norm_num]
-      rw [habs]
+    -- Real inequality: |3^k - 4^l| * 3 < 3^k (close the integer goal with this).
+    have hmul : |(3 : ℝ)^k - (4 : ℝ)^l| * 3 < (3 : ℝ)^k := by
+      rw [habs, h_abs_exp]
+      -- Goal: 4^l * (1 - exp δ₁) * 3 < 3^k
+      -- From hkey : 3^k - 4^l = 4^l * (exp δ₁ - 1), so 3^k = 4^l * exp δ₁.
+      have h3_eq : (3 : ℝ)^k = (4 : ℝ)^l * Real.exp δ₁ := by linarith [hkey]
+      rw [h3_eq]
+      -- Goal: 4^l * (1 - exp δ₁) * 3 < 4^l * exp δ₁
+      rw [mul_assoc]  -- 4^l * (1 - exp) * 3 → 4^l * ((1 - exp) * 3)
+      rw [mul_lt_mul_iff_right₀ h4_pos_real]
+      -- Goal: (1 - exp δ₁) * 3 < exp δ₁
+      rw [sub_mul]
+      rw [gt_iff_lt] at hexp_δ₁_gt_3_4
+      linarith [hexp_δ₁_gt_3_4]
+    -- Wrap up the integer goal.
+    -- Goal: |((3 : ℤ)^(n.natAbs) - (4 : ℤ)^(m.natAbs) : ℤ)| * 3
+    --       < (min ((3 : ℕ)^(n.natAbs)) ((4 : ℕ)^(m.natAbs)) : ℤ)
+    -- Step 1: Convert n.natAbs → k, m.natAbs → l.
+    have e1 : (3 : ℤ)^n.natAbs = (3 : ℤ)^k := by simp only [k]
+    have e2 : (4 : ℤ)^m.natAbs = (4 : ℤ)^l := by simp only [l]
+    rw [e1, e2]
+    -- Step 2: Drop redundant `(... : ℤ)` cast on the abs arg.
+    have e_abs : ((3 : ℤ)^k - (4 : ℤ)^l : ℤ) = ((3 : ℤ)^k - (4 : ℤ)^l) := rfl
+    rw [e_abs]
+    -- Goal: |(3 : ℤ)^k - (4 : ℤ)^l| * 3 < (min ((3 : ℕ)^k) ((4 : ℕ)^l) : ℤ)
+    -- Step 3: Convert RHS min to (3 : ℤ)^k.
+    have hmin_eq : (min ((3 : ℕ)^k) ((4 : ℕ)^l) : ℤ) = (3 : ℤ)^k := by
+      apply @min_eq_left (α := ℤ) _ (↑(3^k)) (↑(4^l))
+      -- ↑(3^k) ≤ ↑(4^l) follows from h3_lt_4.
+      exact_mod_cast h3_lt_4.le
+    rw [hmin_eq]
+    -- Goal: |(3 : ℤ)^k - (4 : ℤ)^l| * 3 < (3 : ℤ)^k
+    -- Step 4: Lift hmul (ℝ inequality) to ℤ.
+    have hmul_ℤ : |(3 : ℤ)^k - (4 : ℤ)^l| * 3 < (3 : ℤ)^k := by
       exact_mod_cast hmul
-    exact hnat
+    exact hmul_ℤ
   · -- Case 2: 3^k ≥ 4^l, so min = 4^l.
     -- We need: 4^l · |exp δ₁ - 1| · 3 < 4^l, i.e., |exp δ₁ - 1| < 1/3.
-    -- We have this! Just multiplication.
     -- Goal in reals: 4^l * |exp δ₁ - 1| * 3 < 4^l.
-    -- By habs, this is |3^k - 4^l| * 3 < 4^l.
     have hmul : (4 : ℝ)^l * |Real.exp δ₁ - 1| * 3 < (4 : ℝ)^l := by
-      -- Multiply hexp_δ₁_lt by 4^l > 0: 4^l · |exp δ₁ - 1| < 4^l · 1/3.
-      -- Then multiply both sides by 3.
-      have h1 : (4 : ℝ)^l * |Real.exp δ₁ - 1| < (4 : ℝ)^l * (1/3) := by
-        exact mul_lt_mul_of_pos_left hexp_δ₁_lt h4_pos_real
+      have h1 : (4 : ℝ)^l * |Real.exp δ₁ - 1| < (4 : ℝ)^l * (1/3) :=
+        mul_lt_mul_of_pos_left hexp_δ₁_lt h4_pos_real
       linarith
     -- Convert back to integers.
     refine ⟨(n : ℤ), (m : ℤ), ?_⟩
-    -- Use k, l in reals first, then push_cast.
-    have hmin_eq : (min ((3 : ℕ)^(n.natAbs)) ((4 : ℕ)^(m.natAbs)) : ℕ) =
-                   (min ((3 : ℕ)^k) ((4 : ℕ)^l) : ℕ) := by
-      simp only [k, l]
-    have hmin : (min (↑3 ^ n.natAbs) (↑4 ^ m.natAbs) : ℤ) =
-               (min (↑3 ^ k) (↑4 ^ l) : ℤ) := by
-      -- n.natAbs = k definitionally (via set), but Lean doesn't unfold it.
-      -- Just use hmin_eq and `Nat.cast` lemmas.
-      have e1 : (3 : ℕ) ^ n.natAbs = (3 : ℕ) ^ k := by
-        simp only [k]
-      have e2 : (4 : ℕ) ^ m.natAbs = (4 : ℕ) ^ l := by
-        simp only [l]
-      simp only [e1, e2, k, l]
-    erw [hmin]
-    rw [min_eq_right]
-    -- Goal: |3^(n.natAbs) - 4^(m.natAbs)| * 3 < (4 : ℤ)^(m.natAbs) (after min_eq_right)
-    -- But we also need h3_ge_4 to be cast properly.
-    have hge : (4 : ℤ) ^ m.natAbs ≤ (3 : ℤ) ^ n.natAbs := by
+    -- Goal: |((3 : ℤ)^(n.natAbs) - (4 : ℤ)^(m.natAbs) : ℤ)| * 3
+    --       < (min ((3 : ℕ)^(n.natAbs)) ((4 : ℕ)^(m.natAbs)) : ℤ)
+    -- Step 1: Convert n.natAbs → k, m.natAbs → l.
+    have e1 : (3 : ℤ)^n.natAbs = (3 : ℤ)^k := by simp only [k]
+    have e2 : (4 : ℤ)^m.natAbs = (4 : ℤ)^l := by simp only [l]
+    rw [e1, e2]
+    -- Step 2: Drop redundant `(... : ℤ)` cast on the abs arg.
+    have e_abs : ((3 : ℤ)^k - (4 : ℤ)^l : ℤ) = ((3 : ℤ)^k - (4 : ℤ)^l) := rfl
+    rw [e_abs]
+    -- Goal: |(3 : ℤ)^k - (4 : ℤ)^l| * 3 < (min ((3 : ℕ)^k) ((4 : ℕ)^l) : ℤ)
+    -- Step 3: Convert RHS min to (4 : ℤ)^l. Note: (4:ℤ)^l ≤ (3:ℤ)^k in ℤ follows from h3_ge_4.
+    have hmin_eq : (min ((3 : ℕ)^k) ((4 : ℕ)^l) : ℤ) = (4 : ℤ)^l := by
+      apply @min_eq_right (α := ℤ) _ (↑(3^k)) (↑(4^l))
+      -- ↑(4^l) ≤ ↑(3^k) follows from h3_ge_4.
       exact_mod_cast h3_ge_4
-    -- Now prove the inequality.
-    -- Convert 4^l (in ℕ) to 4^m.natAbs (in ℤ) — they're equal by `l`.
-    -- The goal is in ℕ: 4^l where l = m.natAbs.
-    -- But the type shows 4^l, not 4^m.natAbs. Let me make them match.
-    -- After `rw [min_eq_right]`, the goal's RHS is `4^l` (in ℕ). But the LHS uses
-    -- n.natAbs, m.natAbs. Let me first push cast to make everything ℤ.
-    norm_cast
-    -- Now the goal is something with Int.subNatNat etc. Just use norm_cast.
-    -- Actually, let me just close it using exact_mod_cast hmul.
-    sorry
+    rw [hmin_eq]
+    -- Goal: |(3 : ℤ)^k - (4 : ℤ)^l| * 3 < (4 : ℤ)^l
+    -- Step 4: Lift hmul (ℝ inequality) to ℤ.
+    have hmul_ℤ : |(3 : ℤ)^k - (4 : ℤ)^l| * 3 < (4 : ℤ)^l := by
+      have hreal : (|(3 : ℤ)^k - (4 : ℤ)^l| : ℝ) * 3 < (4 : ℝ)^l := by
+        have cast_abs : (|(3 : ℤ)^k - (4 : ℤ)^l| : ℝ) = |(3 : ℝ)^k - (4 : ℝ)^l| := by
+          simp [Int.cast_sub, Int.cast_abs]
+        rw [cast_abs, habs]
+        exact hmul
+      exact_mod_cast hreal
+    exact hmul_ℤ
