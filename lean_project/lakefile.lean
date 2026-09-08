@@ -17,5 +17,6 @@ lean_lib «Erdos125Equidistribution»
 lean_lib «Erdos125Induction»
 lean_lib «Erdos125Irrational»
 lean_lib «Erdos125Resonance»
+lean_lib «TestEquidistribution»
 
 require mathlib from git "https://github.com/leanprover-community/mathlib4.git"
