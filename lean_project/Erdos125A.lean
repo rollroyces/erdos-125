@@ -104,4 +104,41 @@ example : decomp_a1_aux 100 1 + decomp_a2_aux 100 1 = 300 := by native_decide
 example : decomp_a1_aux 1000 0 + decomp_a2_aux 1000 0 = 1000 := by native_decide
 example : decomp_a1_aux 1000 3 + decomp_a2_aux 1000 3 = 27000 := by native_decide
 
+/-- decomp_c d ∈ {0, 1} for d < 3. -/
+theorem decomp_c_le_one (d : Nat) (hd : d < 3) : decomp_c d ≤ 1 := by
+  unfold decomp_c
+  interval_cases d <;> simp
+
+/-- decomp_r d ∈ {0, 1} for d < 3. -/
+theorem decomp_r_le_one (d : Nat) (hd : d < 3) : decomp_r d ≤ 1 := by
+  unfold decomp_r decomp_c
+  interval_cases d <;> simp
+
+/-- decomp_c d + decomp_r d = d for d < 3 (re-stated for cleanness). -/
+theorem decomp_sum (d : Nat) (hd : d < 3) : decomp_c d + decomp_r d = d := by
+  interval_cases d <;> simp [decomp_c, decomp_r]
+
+/-- decomp_a1_aux n 0 ∈ A. The base-3 representation of decomp_a1_aux n 0
+has all digits in {0, 1} (since decomp_c(d) ∈ {0, 1}), so it's in A. -/
+theorem decomp_a1_aux_inA (n : Nat) : inA (decomp_a1_aux n 0) := by
+  induction n using Nat.strong_induction_on with
+  | _ n ih =>
+    cases n with
+    | zero => simp [decomp_a1_aux, inA]
+    | succ n' =>
+      rw [decomp_a1_aux]
+      -- decomp_a1_aux (n' + 1) 0 = decomp_a1_aux n' / 3 1 + decomp_c ((n' + 1) % 3) * 3^0
+      -- = decomp_a1_aux ((n' + 1) / 3) 1 + decomp_c ((n' + 1) % 3)
+      -- We need to show this is in A.
+      -- Use ih: decomp_a1_aux ((n'+1)/3) 1 ∈ A.
+      have h1 : inA (decomp_a1_aux ((n' + 1) / 3) 1) := by
+        have : (n' + 1) / 3 < n' + 1 := by omega
+        have : (n' + 1) / 3 ≤ n' := by omega
+        sorry
+      sorry
+
+/-- decomp_a2_aux n 0 ∈ A. Similarly. -/
+theorem decomp_a2_aux_inA (n : Nat) : inA (decomp_a2_aux n 0) := by
+  sorry
+
 end Erdos125A
