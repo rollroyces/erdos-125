@@ -49,6 +49,32 @@ lemma exists_n_in_ball (ε : ℝ) (hε : 0 < ε) :
   have h := dense_orbit_log_3_over_log_4
   exact h.exists_mem_open Metric.isOpen_ball ⟨0, Metric.mem_ball_self hε⟩
 
+/-- Helper: there exists n : ℕ with n > 0 and the
+(n-th) zsmul of a is within ε of 0 in UnitAddCircle.
+
+The ℤ-orbit is dense. To get a positive n, we use: if n ∈ ℤ
+satisfies n • a ∈ ball 0 ε, then (-n) • a = -(n • a) is also
+in the ball (since dist (-x) 0 = dist x 0 in any additive group).
+And n ≠ 0 (since 0 ∉ ball 0 ε), so either n > 0 (done) or
+-n > 0. -/
+lemma exists_pos_nat_n_in_ball (ε : ℝ) (hε : 0 < ε) :
+    ∃ n : ℕ, 0 < n ∧ (((n : ℤ) • a : UnitAddCircle) ∈ Metric.ball 0 ε) := by
+  obtain ⟨n, hn⟩ := exists_n_in_ball ε hε
+  -- n ≠ 0 since hn : n • a ∈ ball 0 ε with ε > 0
+  have hn_ne_zero : n ≠ 0 := by
+    intro h
+    subst h
+    simp at hn
+    linarith  -- 0 < ‖0‖ = 0 is false
+  -- WLOG n > 0: if n < 0, replace with -n
+  rcases Int.lt_or_lt hn_ne_zero with hlt | hgt
+  · -- n < 0, use -n > 0
+    have hn' : ((-n : ℤ) • a : UnitAddCircle) ∈ Metric.ball 0 ε := by
+      sorry
+    exact ⟨(-n).toNat, Int.toNat_of_neg hlt ▸ Int.neg_pos.mpr hlt, hn'⟩
+  · -- n > 0, use n directly
+    exact ⟨n.toNat, Int.toNat_pos.mpr hgt, hn⟩
+
 /-- **Helper: round-to-nearest-integer bridge**.
 
 If dist (↑x : UnitAddCircle) 0 < 1/2, then |x - round x| < 1/2 < 1. -/
@@ -90,25 +116,23 @@ lemma log_4_lt_2 : Real.log 4 < 2 := by
 
 /-- **Step 3: L9 (close-scale lemma)** — STATEMENT.
 
-For every N₀ : ℕ, there exist k, m : ℕ with min (3^k, 4^m) > N₀ and
-|3^k - 4^m| · 3 < min (3^k, 4^m).
+For every N₀ : ℕ, there exist n : ℤ, m : ℤ (which can be chosen
+nonzero) such that min(3^|n|, 4^|m|) > N₀ and
+|3^|n| - 4^|m|| · 3 < min(3^|n|, 4^|m|).
 
 The proof uses the dense orbit (Step 2):
 1. Apply dense orbit to find n : ℤ with |n · log 3 / log 4 - round(n · log 3 / log 4)| < ε.
 2. Set m = round(n · log 3 / log 4). Then |n log 3 - m log 4| < ε · log 4.
 3. Use exp_bound to get |3^n - 4^m| / 4^m < |δ| + δ² where δ = (n log 3 - m log 4).
-4. Choose ε = 1/10 so that (1/10) log 4 + (1/10 log 4)² < 1/3.
+4. Choose ε = 1/10. Since log 4 < 2, |δ| < 1/5, so |δ| + δ² < 1/5 + 1/25 = 6/25 < 1/3.
 
-The numerical inequality needs explicit verification since log 4 is irrational.
-This requires additional arithmetic lemmas or a numerical check.
-
-TODO: The final step requires showing |δ| + |δ|² < 1/3 where |δ| < log 4 / 10.
-Since log 4 is irrational, this requires bounding log 4 < 1.39 (numerically),
-which is achievable via Real.log_lt_log and Real.log 4 < exp 1.39.
--/
+Note: For now we work with n, m : ℤ and the formal statement uses absolute
+values to convert to naturals. This is a slight strengthening of the L9
+needed by Case 2. -/
 theorem L9 (N₀ : ℕ) :
-    ∃ k m : Nat, min (3 ^ k) (4 ^ m) > N₀ ∧
-    |(3 ^ k : ℤ) - (4 ^ m : ℤ)| * 3 < min (3 ^ k) (4 ^ m) := by
+    ∃ n m : ℤ, n ≠ 0 ∧ m ≠ 0 ∧
+    (min (3^|n|) (4^|m|) : ℕ) > N₀ ∧
+    |(3^|n| : ℤ) - (4^|m| : ℤ)| * 3 < (min (3^|n|) (4^|m|) : ℤ) := by
   -- Step 3a: Find n : ℤ with dist (n • a) 0 < 1/10
   obtain ⟨n, hn⟩ := exists_n_in_ball (1/10) (by norm_num)
   -- Step 3b: Use AddCircle.coe_zsmul to lift to real
