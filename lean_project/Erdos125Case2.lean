@@ -3,11 +3,13 @@ import Erdos125
 import Erdos125A
 import Erdos125B
 import Erdos125Block
+import Erdos125Density
+import Erdos125Equidistribution
 import Erdos125Irrational
 
 namespace Erdos125Case2
 
-open Real
+open Erdos125 Erdos125A Erdos125B Erdos125Block Erdos125Density Erdos125Equidistribution Real
 
 /-! # Erdős 125 Case 2 (Step 4)
 
@@ -77,12 +79,12 @@ For every N₀, choose k, m with min(3^k, 4^m) > N₀ and |3^k - 4^m| / min < 1/
 Then at the scale N = 4^m, the sumset has density ≥ 1/2. -/
 theorem density_via_L9 (N₀ : Nat) :
     ∃ k m : Nat, min (3 ^ k) (4 ^ m) > N₀ ∧
-    (Erdos125Block.countAB_in_0_N (4 ^ m) : ℕ) ≥ (4 ^ m) / 2 := by
+    (Erdos125Density.countAB_in_0_N (4 ^ m) : ℕ) ≥ (4 ^ m) / 2 := by
   sorry
 
 /-- **Density positive for A + B** (the formal Erdős 125 Case 2 statement). -/
 theorem erdos_125_case_2_positive_density :
-    ∀ N₀ : Nat, ∃ N ≥ N₀, Erdos125Block.countAB_in_0_N N ≥ N / 2 := by
+    ∀ N₀ : Nat, ∃ N ≥ N₀, Erdos125Density.countAB_in_0_N N ≥ N / 2 := by
   sorry
 
 end Erdos125Case2
