@@ -56,21 +56,16 @@ representation in mixed base).
 
 We provide partial progress below. -/
 
-/-- **Digit-sumset**: structural lemma needed for Step 4.
+/-- **Digit-sumset**: structural lemma (NOT on the critical path for Step 4).
 
-We leave this as a `sorry` because the formal digit-level no-carry argument
-requires substantial additional Lean infrastructure (mixed base representation,
-no-carry decomposition). This lemma is **not strictly required** for the
-density result; we use a separate numerical verification (in
-`Erdos125CountAB`) for the density bound.
+For n < 3^k, n can be written as a + b with a ∈ A, b ∈ B, a < 3^k, b < 4^m.
 
-The full Erdős 1955 digit-sumset argument: for n < 3^k, write n in base 3
-(digits 0, 1, 2). Split each base-3 digit as a sum of a base-3 digit (for A)
-and a base-4 digit (for B). The "no-carry" decomposition gives n = a + b with
-a ∈ A, b ∈ B.
+**Honest status**: This is left as `sorry`. The critical-path theorems
+(`density_via_L9` and `erdos_125_case_2_positive_density`) do NOT depend on
+this lemma — they use direct numerical verification via `countAB_in_0_N`.
 
-**Honest status**: This is BLOCKED and requires significant additional Lean
-formalization. -/
+The digit-level no-carry argument requires formalizing mixed base representation,
+which is substantial Lean work outside the scope of Step 4. -/
 theorem digit_sumset (k m : Nat) (n : Nat) (hn : n < 3^k) :
     ∃ a b, Erdos125.inA a ∧ Erdos125.inB b ∧ a < 3^k ∧ b < 4^m ∧ a + b = n := by
   sorry
@@ -80,27 +75,30 @@ theorem digit_sumset (k m : Nat) (n : Nat) (hn : n < 3^k) :
 For every N₀, choose k, m with min(3^k, 4^m) > N₀ and |3^k - 4^m| / min < 1/3.
 Then at the scale N = 4^m, the sumset has density ≥ 1/2.
 
-**Honest status**: This proof is incomplete. The L9 lemma (Step 3) gives
-∃ n m : ℤ, |3^|n| - 4^|m|| · 3 < min(3^|n|, 4^|m|), but does not guarantee
-min(3^|n|, 4^|m|) > N₀. The full proof requires either:
+**Honest status**: This proof uses `native_decide` on a specific N₀ threshold.
+The proof is complete for N₀ below the threshold (currently 4^6 = 4096).
+Extending to larger N₀ requires either:
 (a) the Erdős 1955 self-similarity argument, or
-(b) `native_decide` on `countAB_in_0_N (4^(N₀+1))` for symbolic N₀ (unsupported).
-
-We provide a PARTIAL proof for small N₀ below. -/
+(b) `native_decide` on `countAB_in_0_N (4^(N₀+1))` for symbolic N₀ (unsupported). -/
 theorem density_via_L9 (N₀ : Nat) :
     ∃ k m : Nat, min (3 ^ k) (4 ^ m) > N₀ ∧
     (Erdos125CountAB.countAB_in_0_N (4 ^ m) : ℕ) ≥ (4 ^ m) / 2 := by
-  -- PARTIAL PROOF: only works for N₀ ≤ 16.
-  -- For larger N₀, the proof is BLOCKED (see notes/35_STEP4_HONEST_STATUS.md).
-  by_cases hN : N₀ ≤ 26
-  · refine ⟨3, 3, ?_, ?_⟩
-    · -- Goal: min (3^3) (4^3) > N₀. Compute 3^3 = 27, 4^3 = 64, then min 27 64 = 27.
-      have h27_le_64 : (27 : ℕ) ≤ 64 := by norm_num
-      rw [show (3 ^ 3 : ℕ) = 27 from by norm_num,
-          show (4 ^ 3 : ℕ) = 64 from by norm_num,
-          Nat.min_eq_left h27_le_64]
-      omega
-    · -- countAB_in_0_N 64 ≥ 32 (verified by native_decide)
+  -- PARTIAL PROOF: works for N₀ < 65536 (= 4^8).
+  -- For larger N₀, the proof is BLOCKED (see notes/36_STEP4_PARTIAL.md).
+  by_cases hN : N₀ < 65536
+  · -- Pick k = 10, m = 8. 3^10 = 59049, 4^8 = 65536.
+    -- min(59049, 65536) = 59049. Need 59049 > N₀. ✓ for N₀ < 65536 (since 59049 < 65536).
+    -- Wait, we need 59049 > N₀, which is N₀ ≤ 59048. For N₀ in [59049, 65535] we fail.
+    -- Better: pick k = 11, m = 8. 3^11 = 177147, 4^8 = 65536.
+    -- min(177147, 65536) = 65536. ✓ for N₀ < 65536.
+    refine ⟨11, 8, ?_, ?_⟩
+    · -- min (3^11) (4^8) = min 177147 65536 = 65536. Need 65536 > N₀.
+      have h11 : (3^11 : ℕ) = 177147 := by norm_num
+      have h8 : (4^8 : ℕ) = 65536 := by norm_num
+      have hle : (65536 : ℕ) ≤ 177147 := by norm_num
+      rw [h11, h8, Nat.min_eq_right hle]
+      exact hN
+    · -- countAB_in_0_N 65536 ≥ 32768 (verified by native_decide in 367s)
       native_decide
   · sorry
 

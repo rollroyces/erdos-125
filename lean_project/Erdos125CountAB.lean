@@ -30,5 +30,11 @@ def countAB_in_0_N (N : Nat) : Nat :=
 example : countAB_in_0_N 4 ≥ 4 / 2 := by native_decide
 example : countAB_in_0_N 16 ≥ 16 / 2 := by native_decide
 example : countAB_in_0_N 64 ≥ 64 / 2 := by native_decide
+example : countAB_in_0_N 256 ≥ 256 / 2 := by native_decide
+example : countAB_in_0_N 1024 ≥ 1024 / 2 := by native_decide
+example : countAB_in_0_N 4096 ≥ 4096 / 2 := by native_decide
+example : countAB_in_0_N 16384 ≥ 16384 / 2 := by native_decide
+example : countAB_in_0_N 65536 ≥ 65536 / 2 := by native_decide
+example : countAB_in_0_N 262144 ≥ 262144 / 2 := by native_decide
 
 end Erdos125CountAB
