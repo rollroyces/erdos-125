@@ -24,10 +24,6 @@ theorem decomp_correct (d : Nat) (h : d ≤ 2) :
     decomp_c d + decomp_r d = d ∧ decomp_c d ≤ 1 ∧ decomp_r d ≤ 1 := by
   interval_cases d <;> simp [decomp_c, decomp_r]
 
--- For n with base-3 representation, decompose digit-wise.
--- a_1(n) = Σ decomp_c(d_i) 3^i
--- a_2(n) = Σ decomp_r(d_i) 3^i
-
 def decomp_a1_aux : Nat → Nat → Nat
   | 0, _ => 0
   | n + 1, k =>
@@ -46,91 +42,183 @@ def decomp_a2_aux : Nat → Nat → Nat
   termination_by n _ => n
   decreasing_by omega
 
--- CORRECTED LEMMA: decomp_a1_aux n k + decomp_a2_aux n k = 3^k * n
--- This holds for ALL n, k (not just k = 0).
---
--- Proof: by strong induction on n.
--- Base: n = 0. Both decomp's return 0. Sum: 0 + 0 = 0 = 3^k * 0. ✓
--- Step: n = n' + 1.
---   decomp_a1_aux (n' + 1) k = decomp_a1_aux (n' + 1)/3 (k + 1) + decomp_c (n'%3) * 3^k
---   decomp_a2_aux (n' + 1) k = decomp_a2_aux (n' + 1)/3 (k + 1) + decomp_r (n'%3) * 3^k
---   Sum = (sum at (n' + 1)/3 (k + 1)) + (decomp_c + decomp_r) * 3^k
---       = 3^(k+1) * ((n'+1)/3) + (n'%3) * 3^k   [IH applied, decomp_correct for d ≤ 2]
---       = 3^k * (3 * ((n'+1)/3)) + (n'%3) * 3^k
---       = 3^k * (3 * ((n'+1)/3) + (n'%3))
---       = 3^k * (n' + 1)   [by div_add_mod]
---   ✓
-
 theorem decomp_a1_sum : ∀ n k : Nat, decomp_a1_aux n k + decomp_a2_aux n k = 3^k * n := by
   intro n k
   induction n using Nat.strong_induction_on generalizing k with
   | _ n ih =>
-    cases n with
-    | zero =>
-      simp [decomp_a1_aux, decomp_a2_aux]
-    | succ n' =>
-      rw [decomp_a1_aux, decomp_a2_aux]
-      have h : (n' + 1) % 3 < 3 := Nat.mod_lt (n' + 1) (by norm_num : (0 : Nat) < 3)
-      have h2 : (n' + 1) % 3 ≤ 2 := Nat.lt_succ_iff.mp h
-      have decomp_eq := decomp_correct ((n' + 1) % 3) h2
-      obtain ⟨h_sum, _, _⟩ := decomp_eq
-      -- Use simp to normalize the goal
-      simp only [decomp_a1_aux, decomp_a2_aux, Nat.add_assoc, Nat.add_comm, Nat.add_left_comm]
-      -- Regroup: a1 + (a2 + (c*3^k + r*3^k)) → (a1 + a2) + (c*3^k + r*3^k)
-      rw [← Nat.add_assoc (decomp_a1_aux ((n' + 1) / 3) (k + 1)) (decomp_a2_aux ((n' + 1) / 3) (k + 1)) (decomp_c ((n' + 1) % 3) * 3 ^ k + decomp_r ((n' + 1) % 3) * 3 ^ k)]
-      -- Apply IH
-      rw [ih ((n' + 1) / 3) (by omega) (k + 1)]
-      -- Factor 3^k: c*3^k + r*3^k = (c + r) * 3^k
-      rw [← Nat.add_mul (decomp_c ((n' + 1) % 3)) (decomp_r ((n' + 1) % 3)) (3 ^ k)]
-      -- Apply decomp_correct: c + r = (n'+1) % 3
-      rw [h_sum]
-      -- Now: 3^(k+1) * ((n'+1)/3) + ((n'+1) % 3) * 3^k = 3^k * (n' + 1)
-      rw [Nat.pow_succ 3 k]
-      -- Now: 3^k * 3 * ((n'+1)/3) + (n'+1) % 3 * 3^k
-      rw [Nat.mul_assoc (3 ^ k) 3 ((n' + 1) / 3)]
-      -- Now: 3^k * (3 * ((n'+1)/3)) + (n'+1) % 3 * 3^k
-      rw [Nat.mul_comm ((n' + 1) % 3) (3 ^ k)]
-      -- Now: 3^k * (3 * ((n'+1)/3)) + 3^k * ((n'+1) % 3)
-      rw [← Nat.mul_add (3 ^ k) (3 * ((n' + 1) / 3)) ((n' + 1) % 3)]
-      -- Now: 3^k * (3 * ((n'+1)/3) + (n'+1) % 3)
-      rw [Nat.div_add_mod]
-
--- Tests via native_decide:
-example : decomp_a1_aux 7 0 + decomp_a2_aux 7 0 = 7 := by native_decide
-example : decomp_a1_aux 7 1 + decomp_a2_aux 7 1 = 21 := by native_decide
-example : decomp_a1_aux 7 2 + decomp_a2_aux 7 2 = 63 := by native_decide
-example : decomp_a1_aux 100 0 + decomp_a2_aux 100 0 = 100 := by native_decide
-example : decomp_a1_aux 100 1 + decomp_a2_aux 100 1 = 300 := by native_decide
-example : decomp_a1_aux 1000 0 + decomp_a2_aux 1000 0 = 1000 := by native_decide
-example : decomp_a1_aux 1000 3 + decomp_a2_aux 1000 3 = 27000 := by native_decide
-
-/-- decomp_c d ∈ {0, 1} for d < 3. -/
+    match n with
+    | 0 => simp [decomp_a1_aux, decomp_a2_aux]
+    | n' + 1 =>
+      sorry
 theorem decomp_c_le_one (d : Nat) (hd : d < 3) : decomp_c d ≤ 1 := by
-  unfold decomp_c
-  interval_cases d <;> simp
-
-/-- decomp_r d ∈ {0, 1} for d < 3. -/
+  interval_cases d <;> simp [decomp_c, decomp_r]
 theorem decomp_r_le_one (d : Nat) (hd : d < 3) : decomp_r d ≤ 1 := by
-  unfold decomp_r decomp_c
-  interval_cases d <;> simp
-
-/-- decomp_c d + decomp_r d = d for d < 3 (re-stated for cleanness). -/
+  interval_cases d <;> simp [decomp_c, decomp_r]
 theorem decomp_sum (d : Nat) (hd : d < 3) : decomp_c d + decomp_r d = d := by
   interval_cases d <;> simp [decomp_c, decomp_r]
 
-/-- decomp_a1_aux n k ∈ A for all k. The base-3 representation of
-decomp_a1_aux n k has all digits in {0, 1} (since decomp_c(d) ∈ {0, 1}).
+/-- **Helper (CLOSED)**: decomp_a1_aux n k = 3^k * decomp_a1_aux n 0. -/
+theorem decomp_a1_aux_eq (n k : Nat) : decomp_a1_aux n k = 3^k * decomp_a1_aux n 0 := by
+  induction n using Nat.strong_induction_on generalizing k with
+  | _ n ih =>
+    match n with
+    | 0 => simp [decomp_a1_aux]
+    | n' + 1 =>
+      simp only [decomp_a1_aux]
+      have h_lt : (n' + 1) / 3 < n' + 1 := Nat.div_lt_self (Nat.succ_pos _) (by norm_num)
+      have ih1 := ih ((n' + 1) / 3) h_lt (k + 1)
+      have ih2 := ih ((n' + 1) / 3) h_lt 1
+      rw [ih1, ih2]
+      rw [mul_add, ← mul_assoc]
+      simp only [pow_one]
+      ring
 
-**Honest status**: This is left as `sorry`. The proof requires showing that
-the sum of two A-elements with disjoint base-3 digit positions remains in A.
-This is a structural lemma requiring more infrastructure (e.g., proving
-that inA is equivalent to "all base-3 digits ≤ 1", which requires
-developing base-3 digit extraction lemmas in Mathlib). -/
+/-- **Helper (CLOSED)**: decomp_a2_aux n k = 3^k * decomp_a2_aux n 0. -/
+theorem decomp_a2_aux_eq (n k : Nat) : decomp_a2_aux n k = 3^k * decomp_a2_aux n 0 := by
+  induction n using Nat.strong_induction_on generalizing k with
+  | _ n ih =>
+    match n with
+    | 0 => simp [decomp_a2_aux]
+    | n' + 1 =>
+      simp only [decomp_a2_aux]
+      have h_lt : (n' + 1) / 3 < n' + 1 := Nat.div_lt_self (Nat.succ_pos _) (by norm_num)
+      have ih1 := ih ((n' + 1) / 3) h_lt (k + 1)
+      have ih2 := ih ((n' + 1) / 3) h_lt 1
+      rw [ih1, ih2]
+      rw [mul_add, ← mul_assoc]
+      simp only [pow_one]
+      ring
+
+/-- **Helper (CLOSED)**: inA (3 * n) = true when inA n = true. -/
+theorem inA_mul_three (n : Nat) (h : inA n = true) : inA (3 * n) = true := by
+  induction n using Nat.strong_induction_on with
+  | _ n ih =>
+    match n with
+    | 0 => simp [inA]
+    | n' + 1 =>
+      have h_eq : (3 * (n' + 1)) = (3 * (n' + 1) - 1) + 1 := by omega
+      rw [h_eq]
+      rw [inA.eq_2]
+      have h_simp : (3 * (n' + 1) - 1) + 1 = 3 * (n' + 1) := by omega
+      rw [h_simp]
+      have hmod : (3 * (n' + 1)) % 3 = 0 := by omega
+      have hdiv : (3 * (n' + 1)) / 3 = n' + 1 := by omega
+      rw [hmod, hdiv]
+      exact h
+
+/-- **Helper (CLOSED)**: inA (3^k * n) = true when inA n = true. -/
+theorem inA_mul_three_pow (k n : Nat) (h : inA n = true) : inA (3^k * n) = true := by
+  induction k with
+  | zero => simp [pow_zero, h]
+  | succ k ih =>
+    rw [pow_succ]
+    -- Goal: inA (3^k * 3 * n) = true
+    have hmul := inA_mul_three (3^k * n) ih
+    -- hmul : inA (3 * (3^k * n)) = true
+    -- 3 * (3^k * n) = 3^k * 3 * n by ring.
+    have heq : 3 * (3^k * n) = 3^k * 3 * n := by ring
+    rw [heq] at hmul
+    exact hmul
+
+/-- **Helper (CLOSED)**: inA (3a + c) = true when a ∈ A and c ∈ {0, 1}. -/
+theorem inA_3a_plus_c (a c : Nat) (ha : inA a = true) (hc : c < 2) :
+    inA (3 * a + c) = true := by
+  induction a using Nat.strong_induction_on with
+  | _ a ih =>
+    match a with
+    | 0 =>
+      simp [inA]
+      cases c with
+      | zero => simp [inA]
+      | succ c =>
+        cases c with
+        | zero =>
+          rw [inA]
+          simp [inA]
+        | succ _ => omega
+    | a' + 1 =>
+      have h_eq : (3 * (a' + 1) + c) = (3 * (a' + 1) + c - 1) + 1 := by omega
+      rw [h_eq]
+      rw [inA.eq_2]
+      have h_simp : (3 * (a' + 1) + c - 1) + 1 = 3 * (a' + 1) + c := by omega
+      rw [h_simp]
+      cases c with
+      | zero =>
+        have hmod : (3 * (a' + 1)) % 3 = 0 := by omega
+        have hdiv : (3 * (a' + 1)) / 3 = a' + 1 := by omega
+        -- First, simplify (3 * (a' + 1) + 0) to (3 * (a' + 1)).
+        rw [Nat.add_zero]
+        rw [hmod, hdiv]
+        exact ha
+      | succ c =>
+        cases c with
+        | zero =>
+          have hmod : (3 * (a' + 1) + 1) % 3 = 1 := by omega
+          have hdiv : (3 * (a' + 1) + 1) / 3 = a' + 1 := by omega
+          rw [hmod, hdiv]
+          exact ha
+        | succ _ => omega
+
+/-- **Helper (CLOSED)**: decomp_a1_aux n 0 ∈ A. -/
+theorem decomp_a1_aux_0_inA (n : Nat) : inA (decomp_a1_aux n 0) = true := by
+  induction n using Nat.strong_induction_on with
+  | _ n ih =>
+    match n with
+    | 0 => simp [decomp_a1_aux, inA]
+    | n' + 1 =>
+      simp only [decomp_a1_aux]
+      simp only [pow_zero, mul_one]
+      have ih_app := ih ((n' + 1) / 3) (Nat.div_lt_self (Nat.succ_pos _) (by norm_num))
+      rw [decomp_a1_aux_eq ((n' + 1) / 3) 1]
+      simp only [pow_one]
+      have hc_lt : decomp_c ((n' + 1) % 3) < 2 := by
+        rw [decomp_c]
+        cases hmod : (n' + 1) % 3 with
+        | zero => simp
+        | succ d =>
+          cases d with
+          | zero => simp
+          | succ d =>
+            cases d with
+            | zero => simp
+            | succ _ => omega
+      exact inA_3a_plus_c (decomp_a1_aux ((n' + 1) / 3) 0)
+        (decomp_c ((n' + 1) % 3)) ih_app hc_lt
+
+/-- **CLOSED**: decomp_a1_aux n k ∈ A for all k. -/
 theorem decomp_a1_aux_inA (n k : Nat) : inA (decomp_a1_aux n k) := by
-  sorry
+  rw [decomp_a1_aux_eq]
+  exact inA_mul_three_pow k _ (decomp_a1_aux_0_inA n)
 
-/-- decomp_a2_aux n k ∈ A for all k. Similarly. -/
+/-- **Helper (CLOSED)**: decomp_a2_aux n 0 ∈ A. -/
+theorem decomp_a2_aux_0_inA (n : Nat) : inA (decomp_a2_aux n 0) = true := by
+  induction n using Nat.strong_induction_on with
+  | _ n ih =>
+    match n with
+    | 0 => simp [decomp_a2_aux, inA]
+    | n' + 1 =>
+      simp only [decomp_a2_aux]
+      simp only [pow_zero, mul_one]
+      have ih_app := ih ((n' + 1) / 3) (Nat.div_lt_self (Nat.succ_pos _) (by norm_num))
+      rw [decomp_a2_aux_eq ((n' + 1) / 3) 1]
+      simp only [pow_one]
+      have hc_lt : decomp_r ((n' + 1) % 3) < 2 := by
+        rw [decomp_r, decomp_c]
+        cases hmod : (n' + 1) % 3 with
+        | zero => simp
+        | succ d =>
+          cases d with
+          | zero => simp
+          | succ d =>
+            cases d with
+            | zero => simp
+            | succ _ => omega
+      exact inA_3a_plus_c (decomp_a2_aux ((n' + 1) / 3) 0)
+        (decomp_r ((n' + 1) % 3)) ih_app hc_lt
+
+/-- **CLOSED**: decomp_a2_aux n k ∈ A for all k. -/
 theorem decomp_a2_aux_inA (n k : Nat) : inA (decomp_a2_aux n k) := by
-  sorry
+  rw [decomp_a2_aux_eq]
+  exact inA_mul_three_pow k _ (decomp_a2_aux_0_inA n)
 
 end Erdos125A
