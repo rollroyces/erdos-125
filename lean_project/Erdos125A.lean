@@ -119,29 +119,15 @@ theorem decomp_sum (d : Nat) (hd : d < 3) : decomp_c d + decomp_r d = d := by
   interval_cases d <;> simp [decomp_c, decomp_r]
 
 /-- decomp_a1_aux n k ∈ A for all k. The base-3 representation of
-decomp_a1_aux n k has all digits in {0, 1} (since decomp_c(d) ∈ {0, 1}). -/
+decomp_a1_aux n k has all digits in {0, 1} (since decomp_c(d) ∈ {0, 1}).
+
+**Honest status**: This is left as `sorry`. The proof requires showing that
+the sum of two A-elements with disjoint base-3 digit positions remains in A.
+This is a structural lemma requiring more infrastructure (e.g., proving
+that inA is equivalent to "all base-3 digits ≤ 1", which requires
+developing base-3 digit extraction lemmas in Mathlib). -/
 theorem decomp_a1_aux_inA (n k : Nat) : inA (decomp_a1_aux n k) := by
-  -- We use strong induction on n.
-  -- Base case n = 0: decomp_a1_aux 0 k = 0, inA 0 = true.
-  -- Inductive case n = n' + 1: decomp_a1_aux (n' + 1) k = decomp_a1_aux ((n' + 1) / 3) (k + 1) + decomp_c ((n' + 1) % 3) * 3^k.
-  -- By IH, decomp_a1_aux ((n' + 1) / 3) (k + 1) ∈ A.
-  -- decomp_c d ∈ {0, 1}, so decomp_c d * 3^k has base-3 digit k in {0, 1} and zeros elsewhere.
-  -- The sum is the disjoint sum of two A-elements (positions 0..k-1 are 0 in both,
-  -- position k is decomp_c d, positions > k are the recursive part).
-  -- So the sum's base-3 digits are 0, 0, ..., decomp_c d, [digits of recursive part], all in {0, 1}.
-  -- Hence the sum is in A.
-  induction n using Nat.strong_induction_on generalizing k with
-  | _ n ih =>
-    match n with
-    | 0 => simp [decomp_a1_aux, inA]
-    | n' + 1 =>
-      rw [decomp_a1_aux]
-      -- Apply IH for the recursive part.
-      have ih_call : inA (decomp_a1_aux ((n' + 1) / 3) (k + 1)) := by
-        apply ih
-        · have : (n' + 1) / 3 ≤ n' := by omega
-          omega
-      sorry
+  sorry
 
 /-- decomp_a2_aux n k ∈ A for all k. Similarly. -/
 theorem decomp_a2_aux_inA (n k : Nat) : inA (decomp_a2_aux n k) := by
