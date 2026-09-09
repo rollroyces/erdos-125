@@ -9,6 +9,7 @@ def inA : Nat → Bool
 termination_by n => n
 
 -- B: integers with only digits 0, 1 in base 4
+-- (Standard Erdős 125 definition: B = {Σ ε_k 4^k : ε_k ∈ {0,1}})
 def inB : Nat → Bool
   | 0 => true
   | n + 1 => if (n + 1) % 4 < 2 then inB ((n + 1) / 4) else false
