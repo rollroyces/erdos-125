@@ -76,7 +76,7 @@ For every N₀, choose k, m with min(3^k, 4^m) > N₀ and |3^k - 4^m| / min < 1/
 Then at the scale N = 4^m, the sumset has density ≥ 1/2.
 
 **Honest status**: This proof uses `native_decide` on a specific N₀ threshold.
-The proof is complete for N₀ below the threshold (currently 4^6 = 4096).
+The proof is complete for N₀ below the threshold (currently 4^8 = 65536).
 Extending to larger N₀ requires either:
 (a) the Erdős 1955 self-similarity argument, or
 (b) `native_decide` on `countAB_in_0_N (4^(N₀+1))` for symbolic N₀ (unsupported). -/
@@ -86,10 +86,7 @@ theorem density_via_L9 (N₀ : Nat) :
   -- PARTIAL PROOF: works for N₀ < 65536 (= 4^8).
   -- For larger N₀, the proof is BLOCKED (see notes/36_STEP4_PARTIAL.md).
   by_cases hN : N₀ < 65536
-  · -- Pick k = 10, m = 8. 3^10 = 59049, 4^8 = 65536.
-    -- min(59049, 65536) = 59049. Need 59049 > N₀. ✓ for N₀ < 65536 (since 59049 < 65536).
-    -- Wait, we need 59049 > N₀, which is N₀ ≤ 59048. For N₀ in [59049, 65535] we fail.
-    -- Better: pick k = 11, m = 8. 3^11 = 177147, 4^8 = 65536.
+  · -- Pick k = 11, m = 8. 3^11 = 177147, 4^8 = 65536.
     -- min(177147, 65536) = 65536. ✓ for N₀ < 65536.
     refine ⟨11, 8, ?_, ?_⟩
     · -- min (3^11) (4^8) = min 177147 65536 = 65536. Need 65536 > N₀.
