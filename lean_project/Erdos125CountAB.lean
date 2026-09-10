@@ -58,6 +58,7 @@ example : countAB_in_0_N 1024 ≥ 1024 / 2 := by native_decide
 example : countAB_in_0_N 4096 ≥ 4096 / 2 := by native_decide
 example : countAB_in_0_N 16384 ≥ 16384 / 2 := by native_decide
 example : countAB_in_0_N 65536 ≥ 65536 / 2 := by native_decide
+example : countAB_in_0_N_fast 65536 = countAB_in_0_N 65536 := by native_decide
 
 /-- Verify the fast implementation matches the slow one for small N. -/
 example : countAB_in_0_N_fast 4 = countAB_in_0_N 4 := by native_decide
