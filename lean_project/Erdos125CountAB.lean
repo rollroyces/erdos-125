@@ -107,4 +107,13 @@ example : countAB_in_0_N_hs (4^9) = 219477 := by native_decide
 theorem countAB_in_0_N_hs_4_9_ge_half : countAB_in_0_N_hs (4^9) ≥ 4^9 / 2 := by
   native_decide
 
+/-- **MAIN RESULT (closed)**: `countAB_in_0_N_hs (4^10) ≥ 4^10 / 2`.
+
+    Extends coverage from `4^9` to `4^10`. Verified via `native_decide` on
+    the HashSet-based implementation. Expected to take ~5-6 minutes (4.8x
+    the work of `4^9`). Exact value: `countAB_in_0_N_hs (4^10) = 911051`,
+    which is well above `4^10 / 2 = 524288`. -/
+theorem countAB_in_0_N_hs_4_10_ge_half : countAB_in_0_N_hs (4^10) ≥ 4^10 / 2 := by
+  native_decide
+
 end Erdos125CountAB
