@@ -42,14 +42,6 @@ def decomp_a2_aux : Nat → Nat → Nat
   termination_by n _ => n
   decreasing_by omega
 
-theorem decomp_a1_sum : ∀ n k : Nat, decomp_a1_aux n k + decomp_a2_aux n k = 3^k * n := by
-  intro n k
-  induction n using Nat.strong_induction_on generalizing k with
-  | _ n ih =>
-    match n with
-    | 0 => simp [decomp_a1_aux, decomp_a2_aux]
-    | n' + 1 =>
-      sorry
 theorem decomp_c_le_one (d : Nat) (hd : d < 3) : decomp_c d ≤ 1 := by
   interval_cases d <;> simp [decomp_c, decomp_r]
 theorem decomp_r_le_one (d : Nat) (hd : d < 3) : decomp_r d ≤ 1 := by
@@ -88,6 +80,59 @@ theorem decomp_a2_aux_eq (n k : Nat) : decomp_a2_aux n k = 3^k * decomp_a2_aux n
       rw [mul_add, ← mul_assoc]
       simp only [pow_one]
       ring
+
+/-- **MAIN RESULT (CLOSED)**: decomp_a1_aux n k + decomp_a2_aux n k = 3^k * n. -/
+theorem decomp_a1_sum : ∀ n k : Nat, decomp_a1_aux n k + decomp_a2_aux n k = 3^k * n := by
+  intro n k
+  -- Use suffices: prove the base case k=0, then reduce general k.
+  suffices hk0 : decomp_a1_aux n 0 + decomp_a2_aux n 0 = n by
+    -- General k: factor 3^k via decomp_aN_aux_eq.
+    rw [decomp_a1_aux_eq n k, decomp_a2_aux_eq n k]
+    rw [← mul_add, hk0]
+  -- Prove the base case k=0.
+  induction n using Nat.strong_induction_on with
+  | _ n ih =>
+    match n with
+    | 0 => simp [decomp_a1_aux, decomp_a2_aux]
+    | n' + 1 =>
+      have h_lt : (n' + 1) / 3 < n' + 1 := Nat.div_lt_self (Nat.succ_pos _) (by norm_num)
+      have ih1 := ih ((n' + 1) / 3) h_lt
+      simp only [decomp_a1_aux, decomp_a2_aux, pow_zero, mul_one, Nat.zero_add]
+      -- Goal: a1' + (c1 + (a2' + c2)) = n' + 1
+      -- where a1' = decomp_a1_aux ((n'+1)/3) 1, a2' = decomp_a2_aux ((n'+1)/3) 1,
+      --       c1 = decomp_c d, c2 = decomp_r d.
+      -- Convert a1' = 3*a1'', a2' = 3*a2'' via decomp_a1_aux_eq at k=1.
+      have e_a1 : decomp_a1_aux ((n' + 1) / 3) 1 = 3 * decomp_a1_aux ((n' + 1) / 3) 0 :=
+        decomp_a1_aux_eq ((n' + 1) / 3) 1
+      have e_a2 : decomp_a2_aux ((n' + 1) / 3) 1 = 3 * decomp_a2_aux ((n' + 1) / 3) 0 :=
+        decomp_a2_aux_eq ((n' + 1) / 3) 1
+      rw [e_a1, e_a2]
+      -- Goal: 3*a1'' + (c1 + (3*a2'' + c2)) = n' + 1
+      -- Apply ih1: a1'' + a2'' = (n'+1)/3.
+      -- Reassociate: 3 * (a1'' + a2'') + c1 + c2 = 3 * (n'+1)/3 + (n'+1) % 3.
+      -- Use Nat.add_left_comm: x + (y + (z + w)) = y + (x + (z + w)) (swap x and y).
+      -- Actually: 3*a1'' + (c1 + (3*a2'' + c2)) -> reorder to (a1'' + a2'') form.
+      rw [Nat.add_assoc]
+      -- 3*a1'' + (c1 + 3*a2'') + c2 — hmm, doesn't help.
+      -- Instead, swap b and c1: 3*a1'' + c1 + (3*a2'' + c2) = 3*a1'' + 3*a2'' + c1 + c2.
+      -- But this is left-assoc: ((3*a1'' + c1) + 3*a2'') + c2. After Nat.add_assoc: (3*a1'' + c1 + 3*a2'') + c2.
+      -- To swap, use Nat.add_left_comm: a + (b + c) = b + (a + c). Apply to inner: c1 + (3*a2'') = 3*a2'' + c1.
+      rw [Nat.add_left_comm (decomp_c ((n' + 1) % 3)) (3 * decomp_a2_aux ((n' + 1) / 3) 0) (decomp_r ((n' + 1) % 3))]
+      -- Now: 3*a1'' + (3*a2'' + (c1 + c2)).
+      -- We want: 3*(a1'' + a2'') + (c1 + c2).
+      -- Use ac_rfl to reorder via add_comm + add_assoc:
+      have heq1 : (3 * decomp_a1_aux ((n' + 1) / 3) 0 + 3 * decomp_a2_aux ((n' + 1) / 3) 0) +
+                  (decomp_c ((n' + 1) % 3) + decomp_r ((n' + 1) % 3)) =
+                  3 * decomp_a1_aux ((n' + 1) / 3) 0 +
+                  (3 * decomp_a2_aux ((n' + 1) / 3) 0 +
+                    (decomp_c ((n' + 1) % 3) + decomp_r ((n' + 1) % 3))) := by
+        rw [Nat.add_assoc]
+      rw [← heq1]
+      rw [← Nat.mul_add]  -- 3*a1 + 3*a2 = 3*(a1 + a2)
+      rw [ih1]
+      have hsum : decomp_c ((n' + 1) % 3) + decomp_r ((n' + 1) % 3) = (n' + 1) % 3 :=
+        decomp_sum ((n' + 1) % 3) (Nat.mod_lt _ (by norm_num : 0 < 3))
+      rw [hsum, Nat.div_add_mod]
 
 /-- **Helper (CLOSED)**: inA (3 * n) = true when inA n = true. -/
 theorem inA_mul_three (n : Nat) (h : inA n = true) : inA (3 * n) = true := by
