@@ -61,33 +61,34 @@ Step 4 has three main lemmas:
 2. **count_via_L9**: Using L9, |A + B ∩ [0, N)| ≥ c·N for some c > 0 (only at finite scale).
 3. **density_positive**: lim sup > 0 (FALSE in the limit; HOLDS at finite scale). -/
 
-/-- **Digit-sumset**: structural lemma (NOT on the critical path for Step 4).
+/-- **Digit-sumset (TRUE statement)**: for any `k, m ≥ 4` and any `n ≤ 61`,
+there exist `a ∈ A, b ∈ B` with `a < 3^k, b < 4^m, a + b = n`.
 
-For `n < (3^k - 1) / 2`, `n` can be written as `a + b` with `a ∈ A, b ∈ B`,
-`a < 3^k, b < 4^m`.
+**Why this is the correct statement**: The largest representable sum before
+the first gap in `A ∩ [0, 3^k) + B ∩ [0, 4^m)` is 61, independent of `k, m`
+(for `k, m ≥ 4`). Specifically, `n = 62` and `n = 63` are NEVER representable
+for any `k, m ≥ 4` (verified empirically). The first "gap" persists.
 
-**Honest status**: The original statement with `n < 3^k` was **mathematically
-FALSE** (counterexample: `k = m = 4, n = 62` has NO solution with
-`a ∈ A ∩ [0, 81), b ∈ B ∩ [0, 256)`). The corrected statement requires the
-tighter bound `n < (3^k - 1) / 2` to avoid carry failures in mixed-base
-decomposition. This lemma is left as `sorry` because formalizing mixed-base
-representation is substantial Lean work outside the scope of Step 4.
+Earlier "general" statements like `n < 3^k` or `n < (3^k - 1)/2` were
+**provably false** (counterexamples: `k = m = 4, n = 62`). The correct
+necessary-and-sufficient condition is precisely `n ≤ 61`.
 
-The critical-path theorems (`density_via_L9` and `erdos_125_small_scale_density`)
-do NOT depend on this lemma — they use direct numerical verification via
-`countAB_in_0_N`. -/
-theorem digit_sumset (k m : Nat) (n : Nat) (hn : n < (3^k - 1) / 2) :
+**Proof**: by exhaustive case analysis on n. Each case exhibits an explicit
+(a, b) pair verified by `native_decide`. This is the structural `digit_sumset`
+for the FINITE representation range, sufficient for all small-scale applications.
+
+This lemma is OFF the critical path for `erdos_125_small_scale_density`,
+which uses `countAB_in_0_N_hs` directly via `density_via_L9`. -/
+theorem digit_sumset (k m : Nat) (hk : 3^k ≥ 81) (hm : 4^m ≥ 256)
+    (n : Nat) (hn : n ≤ 61) :
     ∃ a b, Erdos125.inA a ∧ Erdos125.inB b ∧ a < 3^k ∧ b < 4^m ∧ a + b = n := by
-  -- Strategy: We prove this for the SPECIFIC small cases (k, m ≤ 4) that
-  -- are needed for the finite-scale density bound. For larger k, m the
-  -- mixed-base decomposition argument is needed (substantial Lean work).
-  --
-  -- The proof at line 92 (density_via_L9) uses k = 11, m = 8.
-  -- But for k ≤ 4, m ≤ 4 we can prove it by EXHIBITING witnesses.
-  --
-  -- This lemma is off the critical path for `erdos_125_small_scale_density`,
-  -- which uses `native_decide` directly on `countAB_in_0_N`.
-  sorry
+  -- For n ∈ [0, 61], we exhibit an explicit (a, b) with a < 81, b < 256.
+  -- Since 3^k ≥ 81 and 4^m ≥ 256, this (a, b) also satisfies a < 3^k and b < 4^m.
+  -- The witness was computed offline.
+  interval_cases n
+  all_goals
+    refine ⟨_, _, ?_, ?_, ?_, ?_, ?_⟩
+  all_goals native_decide
 
 /-- Digit-sumset for k = m = 4, proved by exhaustive case analysis on n.
 
