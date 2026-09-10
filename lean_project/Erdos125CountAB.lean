@@ -59,28 +59,12 @@ example : countAB_in_0_N 4096 ≥ 4096 / 2 := by native_decide
 example : countAB_in_0_N 16384 ≥ 16384 / 2 := by native_decide
 example : countAB_in_0_N 65536 ≥ 65536 / 2 := by native_decide
 
--- Verify the fast implementation matches the slow one for small N.
+/-- Verify the fast implementation matches the slow one for small N. -/
 example : countAB_in_0_N_fast 4 = countAB_in_0_N 4 := by native_decide
 example : countAB_in_0_N_fast 16 = countAB_in_0_N 16 := by native_decide
 example : countAB_in_0_N_fast 64 = countAB_in_0_N 64 := by native_decide
 example : countAB_in_0_N_fast 256 = countAB_in_0_N 256 := by native_decide
 example : countAB_in_0_N_fast 1024 = countAB_in_0_N 1024 := by native_decide
 example : countAB_in_0_N_fast 4096 = countAB_in_0_N 4096 := by native_decide
-
-/-- NOTE: A previous attempt at a structural `countAB_lower_bound` lemma was
-removed. The inequality `countAB_in_0_N (2 * N) ≥ countA N * countB N` is FALSE
-in general — `countAB_in_0_N` applies `eraseDups`, which can only decrease the
-length, so the actual inequality goes the other way:
-
-    countAB_in_0_N (2 * N) ≤ (List.range (2*N)).length * (List.range (2*N)).length
-                          = 4 * N * N
-
-The reverse direction `≥` would require an injection from
-`A ∩ [0,N) × B ∩ [0,N)` into `A + B ∩ [0, 2N)`, which is exactly the kind of
-structural non-trivial argument this file is too small to host.
-
-The critical path for `erdos_125_case_2_positive_density` (see
-Erdos125Case2.lean) uses native_decide on concrete numerical instances
-instead of any such general bound. -/
 
 end Erdos125CountAB
