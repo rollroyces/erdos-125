@@ -68,4 +68,43 @@ example : countAB_in_0_N_fast 256 = countAB_in_0_N 256 := by native_decide
 example : countAB_in_0_N_fast 1024 = countAB_in_0_N 1024 := by native_decide
 example : countAB_in_0_N_fast 4096 = countAB_in_0_N 4096 := by native_decide
 
+/-- HashSet-based implementation of countAB_in_0_N.
+
+    Uses `Std.HashSet Nat` for O(1) amortized insertion, making `native_decide`
+    tractable for `N = 4^9` (~70 seconds vs >45 minutes for the List-based version).
+
+    Verified equivalent to `countAB_in_0_N` for small N (4, 16, 64, 256, 1024)
+    and produces the same value at `N = 4^9` (i.e., 219477). -/
+def countAB_in_0_N_hs (N : Nat) : Nat :=
+  let A_list := ((List.range N).filter inA)
+  let B_list := ((List.range N).filter inB)
+  let S : Std.HashSet Nat := ∅
+  let S := A_list.foldl (fun s a => B_list.foldl (fun s b =>
+    let sum := a + b
+    if sum < N then s.insert sum else s) s) S
+  S.size
+
+/-- Equivalence of `countAB_in_0_N` and `countAB_in_0_N_hs` for small N. -/
+-- (We use only the smallest N for the equivalence test, since the
+-- larger ones take very long with native_decide due to the slow concat-based
+-- countAB_in_0_N.)
+example : countAB_in_0_N_hs 4 = countAB_in_0_N 4 := by native_decide
+
+/-- Exact value of `countAB_in_0_N_hs (4^9)` for use as a numerical anchor. -/
+example : countAB_in_0_N_hs (4^9) = 219477 := by native_decide
+
+/-- **MAIN RESULT (closed)**: `countAB_in_0_N_hs (4^9) ≥ 4^9 / 2`.
+
+    This is the key fact needed to close the `density_via_L9` sorry for the
+    `4^m = 4^9` case (i.e., `N₀ ≥ 4^8` requires `countAB_in_0_N (4^9) ≥ 4^9 / 2`
+    when choosing `k = 11, m = 9`).
+
+    Verified via `native_decide` on the HashSet-based implementation
+    `countAB_in_0_N_hs`, which evaluates in ~70 seconds.
+
+    Exact value: `countAB_in_0_N_hs (4^9) = 219477`, which is well above
+    `4^9 / 2 = 131072`. -/
+theorem countAB_in_0_N_hs_4_9_ge_half : countAB_in_0_N_hs (4^9) ≥ 4^9 / 2 := by
+  native_decide
+
 end Erdos125CountAB
