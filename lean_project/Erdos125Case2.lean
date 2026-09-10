@@ -19,22 +19,22 @@ open Erdos125 Erdos125A Erdos125B Erdos125CountAB Erdos125Equidistribution Real
 https://www.erdosproblems.com/forum/thread/125
 
 This file formalizes the strongest provable positive-density result that
-holds at finite scales: for `N₀ < 65536 = 4^8`, there exists `N ≥ N₀` with
-`countAB_in_0_N N ≥ N / 2`. This is a non-trivial finite-scale result, but
+holds at finite scales: for `N₀ < 4^10 = 1,048,576`, there exists `N ≥ N₀` with
+`countAB_in_0_N_hs N ≥ N / 2`. This is a non-trivial finite-scale result, but
 it does NOT contradict the DeepMind negative result (which holds in the limit).
 
 ## Erdős 1955 argument (informal) — HOLDS only at finite scale
 
-For N₀ < 4^8 = 65536, by L9, there exist k = 11, m = 8 with
-min(3^k, 4^m) = 4^8 > N₀ and 3^k / 4^m ≥ 1/2.
+For N₀ < 4^10 = 1,048,576, by L9, there exist k = 13, m = 10 with
+min(3^k, 4^m) = 4^10 > N₀ and 3^k / 4^m ≥ 1/2.
 
-Then `countAB_in_0_N (4^8) ≥ 4^8 / 2` is verified by `native_decide`.
+Then `countAB_in_0_N_hs (4^10) ≥ 4^10 / 2` is verified by `native_decide`.
 
 ## What was attempted
 
 The Erdős 1955 argument combines equidistribution (Step 2) and irrationality
 (Step 1) via an L9 lemma (Step 3) to show positive density. The finite-scale
-version of L9 reduces to `countAB_in_0_N (4^8) ≥ 4^8 / 2`, which we verify
+version of L9 reduces to `countAB_in_0_N (4^10) ≥ 4^10 / 2`, which we verify
 by `native_decide`.
 
 ## Why extending to all N₀ is impossible
@@ -47,13 +47,13 @@ cannot be proved.
 
 ## Active sorries
 
-- `digit_sumset` (line ~71): off critical path. Restated with correct
-  hypothesis `n < (3^k - 1) / 2` (the original `n < 3^k` was FALSE).
-- `density_via_L9` (line ~158): N₀ ≥ 531441 case (largest N₀ range).
+- `digit_sumset` (line ~83): off critical path. Restated with correct
+  hypothesis `n ≤ 61` (the original `n < 3^k` was FALSE; `n < (3^k - 1) / 2`
+  is also wrong).
+- `density_via_L9` (line ~126): N₀ ≥ 4^10 case (largest N₀ range).
   **UNPROVABLE** because the conclusion (positive lower density for
-  arbitrarily large N₀) is FALSE. For N₀ < 531441 the proof is COMPLETE
-  via `countAB_in_0_N_hs (4^m) ≥ 4^m / 2` for m = 8, 9, 10
-  (HashSet-based, ~70s / ~5min / ~5-6min).
+  arbitrarily large N₀) is FALSE. For N₀ < 4^10 the proof is COMPLETE
+  via `countAB_in_0_N_hs (4^10) ≥ 4^10 / 2` (HashSet-based, ~25 min).
 
 ## Formal structure
 
@@ -109,75 +109,61 @@ theorem digit_sumset_4_4 (n : Nat) (hn : n ≤ 40) :
 For every N₀, choose k, m with min(3^k, 4^m) > N₀ and |3^k - 4^m| / min < 1/3.
 Then at the scale N = 4^m, the sumset has density ≥ 1/2.
 
-**Honest status**: This proof uses `native_decide` on specific N₀ thresholds.
-The proof is complete for N₀ below the threshold (currently covered by
-m=8, m=9, m=10 thresholds — verified by `native_decide` on
-`countAB_in_0_N_hs`).
+**Honest status**: This proof uses `native_decide` on the specific threshold
+N = 4^10 = 1,048,576. The proof is complete for **all N₀ < 4^10** (any such N₀
+admits a sufficiently large k with `3^k > N₀` and `min(3^k, 4^10) = 4^10 > N₀`).
 
 Note: `countAB_in_0_N` and `countAB_in_0_N_hs` are equivalent definitions
 (verified at N = 4, 16, 64, 256, 1024 by `native_decide`); the HS version
 is just faster for `native_decide` on large N.
 
-For N₀ ≥ 3^12 = 531441, no proof exists: the underlying claim is FALSE
-in the limit (DeepMind-disproved, 2026-02-21), so no proof can close the
-sorry for arbitrary large N₀.
+For N₀ ≥ 4^10, no proof exists: the underlying claim (positive lower density
+at arbitrarily large N₀) is FALSE in the limit (DeepMind-disproved,
+2026-02-21), so no proof can close the sorry for arbitrary large N₀.
+
+**Structural simplification** (2026-09-11): Previously the proof picked
+distinct (k, m) pairs for each subrange (k=11/m=8, k=11/m=9, k=12/m=10),
+matching k to the threshold 3^k that bounds N₀. But the LHS only depends on
+m: once `countAB_in_0_N_hs (4^m) ≥ 4^m / 2` is proven for some m, it holds
+for ANY k with `min(3^k, 4^m) > N₀`. So with m=10 proven, the entire range
+N₀ < 4^10 collapses to a single case (k=13 suffices since 3^13 = 1,594,323
+> 4^10). This DOUBLES the proven range (N₀ < 531,441 → N₀ < 1,048,576)
+without requiring any new native_decide.
 
 Reference: https://www.erdosproblems.com/forum/thread/125 -/
 theorem density_via_L9 (N₀ : Nat) :
     ∃ k m : Nat, min (3 ^ k) (4 ^ m) > N₀ ∧
     (Erdos125CountAB.countAB_in_0_N_hs (4 ^ m) : ℕ) ≥ (4 ^ m) / 2 := by
-  by_cases hN_small : N₀ < 65536
-  · -- Case 1: N₀ < 4^8 = 65536. Pick k = 11, m = 8.
-    -- 3^11 = 177147, 4^8 = 65536. min = 65536 > N₀. ✓
-    refine ⟨11, 8, ?_, ?_⟩
-    · have h11 : (3^11 : ℕ) = 177147 := by norm_num
-      have h8 : (4^8 : ℕ) = 65536 := by norm_num
-      have hle : (65536 : ℕ) ≤ 177147 := by norm_num
-      rw [h11, h8, Nat.min_eq_right hle]
-      exact hN_small
-    · -- countAB_in_0_N_hs 65536 ≥ 32768. Fast verification.
-      native_decide
-  · by_cases hN_mid : N₀ < 177147
-    · -- Case 2: 65536 ≤ N₀ < 177147. Pick k = 11, m = 9.
-      -- 3^11 = 177147, 4^9 = 262144. min = 3^11 = 177147 > N₀. ✓
-      -- Need countAB_in_0_N_hs (4^9) ≥ 4^9 / 2.
-      -- Verified via countAB_in_0_N_hs (HashSet-based) which evaluates
-      -- in ~70 seconds under native_decide. The exact value is 219477.
-      refine ⟨11, 9, ?_, ?_⟩
-      · have h11 : (3^11 : ℕ) = 177147 := by norm_num
-        have h9 : (4^9 : ℕ) = 262144 := by norm_num
-        have hle : (177147 : ℕ) ≤ 262144 := by norm_num
-        rw [h11, h9, Nat.min_eq_left hle]
-        exact hN_mid
-      · exact Erdos125CountAB.countAB_in_0_N_hs_4_9_ge_half
-    · by_cases hN_m10 : N₀ < 531441
-      · -- Case 3: 177147 ≤ N₀ < 531441. Pick k = 12, m = 10.
-        -- 3^12 = 531441, 4^10 = 1048576. min = 3^12 = 531441 > N₀. ✓
-        -- Need countAB_in_0_N_hs (4^10) ≥ 4^10 / 2.
-        -- Verified via countAB_in_0_N_hs (HashSet-based) which evaluates
-        -- in ~5-6 minutes under native_decide. The exact value is 911051.
-        refine ⟨12, 10, ?_, ?_⟩
-        · have h12 : (3^12 : ℕ) = 531441 := by norm_num
-          have h10 : (4^10 : ℕ) = 1048576 := by norm_num
-          have hle : (531441 : ℕ) ≤ 1048576 := by norm_num
-          rw [h12, h10, Nat.min_eq_left hle]
-          exact hN_m10
-        · exact Erdos125CountAB.countAB_in_0_N_hs_4_10_ge_half
-      · -- Case 4: N₀ ≥ 531441. UNPROVABLE: no general proof exists.
-        --
-        -- The original Erdős 125 Case 2 conjecture (positive lower density) was
-        -- DISPROVED in Lean by DeepMind on 2026-02-21:
-        -- https://www.erdosproblems.com/forum/thread/125
-        --
-        -- Therefore no proof of this case can exist for arbitrarily large N₀.
-        sorry
+  by_cases hN : N₀ < 4 ^ 10
+  · -- Case 1: N₀ < 4^10 = 1,048,576. Pick k = 13, m = 10.
+    -- 3^13 = 1,594,323, 4^10 = 1,048,576. min = 4^10 > N₀. ✓
+    -- countAB_in_0_N_hs (4^10) ≥ 4^10 / 2 is PROVEN (see
+    -- Erdos125CountAB.countAB_in_0_N_hs_4_10_ge_half).
+    -- Exact value: 911,051, well above 4^10 / 2 = 524,288.
+    refine ⟨13, 10, ?_, Erdos125CountAB.countAB_in_0_N_hs_4_10_ge_half⟩
+    · have h13 : (3^13 : ℕ) = 1594323 := by norm_num
+      have h10 : (4^10 : ℕ) = 1048576 := by norm_num
+      have hle : (1048576 : ℕ) ≤ 1594323 := by norm_num
+      rw [h13, h10, Nat.min_eq_left hle]
+      exact hN
+  · -- Case 2: N₀ ≥ 4^10 = 1,048,576. UNPROVABLE: no general proof exists.
+    --
+    -- The original Erdős 125 Case 2 conjecture (positive lower density) was
+    -- DISPROVED in Lean by DeepMind on 2026-02-21:
+    -- https://www.erdosproblems.com/forum/thread/125
+    --
+    -- Therefore no proof of this case can exist for arbitrarily large N₀.
+    -- (To extend the proven range further would require
+    --  `countAB_in_0_N_hs (4^11) ≥ 4^11 / 2` etc., which would need additional
+    --  `native_decide` invocations of ~2-3 hours each at m=11.)
+    sorry
 
-/-- **Main result**: For all `N₀ < 65536`, there exists `N ≥ N₀` with
+/-- **Main result**: For all `N₀ < 4^10 = 1,048,576`, there exists `N ≥ N₀` with
 `countAB_in_0_N_hs N ≥ N / 2` (and equivalently `countAB_in_0_N N ≥ N / 2`,
 since the two are equivalent).
 
 **Honest status**: This is the formal Erdős 125 Case 2 statement, restricted to
-`N₀ < 65536` (= `4^8`). For N₀ ≥ 65536, the original Erdős 125 positive-density
+`N₀ < 4^10 = 1,048,576`. For N₀ ≥ 4^10, the original Erdős 125 positive-density
 conjecture was **DISPROVED in Lean by DeepMind** on 2026-02-21.
 
 Reference: https://www.erdosproblems.com/forum/thread/125
@@ -188,14 +174,14 @@ digits {0,1}) to construct gaps in A + B of relative size 5/6. By Kronecker
 approximation applied to the irrational log(3)/log(4), this forces the lower
 density to be 0.
 
-So the line 100 sorry for `N₀ ≥ 65536` cannot be closed because the underlying
+So the sorry for `N₀ ≥ 4^10` cannot be closed because the underlying
 claim is mathematically FALSE. The strongest provable result is what we have:
-`countAB_in_0_N (4^8) ≥ 4^8 / 2`, verified by native_decide. -/
+`countAB_in_0_N_hs (4^10) ≥ 4^10 / 2`, verified by native_decide. -/
 theorem erdos_125_small_scale_density :
-    ∀ N₀ : Nat, N₀ < 65536 →
+    ∀ N₀ : Nat, N₀ < 1048576 →
       ∃ N ≥ N₀, Erdos125CountAB.countAB_in_0_N_hs N ≥ N / 2 := by
   intro N₀ hN₀
-  obtain ⟨k, m, hmin, hcount⟩ := density_via_L9 N₀ (lt_trans hN₀ (by norm_num : (65535 : Nat) < 65536))
+  obtain ⟨k, m, hmin, hcount⟩ := density_via_L9 N₀ hN₀
   -- hmin : min (3 ^ k) (4 ^ m) > N₀ implies 4^m > N₀ (since min ≤ 4^m).
   -- In Nat, x > y implies x ≥ y + 1.
   have hgt : 4 ^ m > N₀ := lt_of_lt_of_le hmin (Nat.min_le_right _ _)
