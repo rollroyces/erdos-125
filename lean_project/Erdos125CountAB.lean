@@ -67,29 +67,20 @@ example : countAB_in_0_N_fast 256 = countAB_in_0_N 256 := by native_decide
 example : countAB_in_0_N_fast 1024 = countAB_in_0_N 1024 := by native_decide
 example : countAB_in_0_N_fast 4096 = countAB_in_0_N 4096 := by native_decide
 
-/-- **Structural lower bound**: countAB(2N) ≥ countA(N) · countB(N).
+/-- NOTE: A previous attempt at a structural `countAB_lower_bound` lemma was
+removed. The inequality `countAB_in_0_N (2 * N) ≥ countA N * countB N` is FALSE
+in general — `countAB_in_0_N` applies `eraseDups`, which can only decrease the
+length, so the actual inequality goes the other way:
 
-For each (a, b) ∈ A ∩ [0, N) × B ∩ [0, N), the sum s = a + b < 2N.
-So at least countA(N) · countB(N) "sum events" occur in [0, 2N), and the number
-of distinct sums is ≤ the number of pairs (since eraseDups collapses).
+    countAB_in_0_N (2 * N) ≤ (List.range (2*N)).length * (List.range (2*N)).length
+                          = 4 * N * N
 
-This gives `countAB(2N) ≥ countA(N) · countB(N)`.
+The reverse direction `≥` would require an injection from
+`A ∩ [0,N) × B ∩ [0,N)` into `A + B ∩ [0, 2N)`, which is exactly the kind of
+structural non-trivial argument this file is too small to host.
 
-**Honest status**: This proof is BLOCKED. The formal statement requires reasoning
-about the structure of `countAB_in_0_N` (List.concat + eraseDups.length), which
-needs substantial Lean infrastructure.
-
-For the critical path of `erdos_125_case_2_positive_density`, we don't need
-this lemma — `density_via_L9` directly uses `native_decide` on `countAB_in_0_N`. -/
-theorem countAB_lower_bound (N : Nat) :
-    countAB_in_0_N (2 * N) ≥ countA N * countB N := by
-  -- Unfold countAB_in_0_N.
-  unfold countAB_in_0_N
-  -- Goal: (raw_sums at 2N).eraseDups.length ≥ countA N * countB N
-  -- The raw_sums is built by filtering all (a, b) pairs.
-  -- For each (a, b) with a ∈ A ∩ [0, N), b ∈ B ∩ [0, N), we have a + b < 2N.
-  -- So raw_sums includes ALL countA(N) * countB(N) sums.
-  -- Hence raw_sums.length = countA(N) * countB(N) ≥ ... 
-  sorry
+The critical path for `erdos_125_case_2_positive_density` (see
+Erdos125Case2.lean) uses native_decide on concrete numerical instances
+instead of any such general bound. -/
 
 end Erdos125CountAB
