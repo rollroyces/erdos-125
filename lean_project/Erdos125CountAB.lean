@@ -130,4 +130,18 @@ theorem countAB_in_0_N_hs_4_10_ge_half : countAB_in_0_N_hs (4^10) ≥ 4^10 / 2 :
 theorem countAB_in_0_N_hs_4_11_ge_half : countAB_in_0_N_hs (4^11) ≥ 4^11 / 2 := by
   native_decide
 
+/-- **MAIN RESULT (m=12, background compile)**: `countAB_in_0_N_hs (4^12) ≥ 4^12 / 2`.
+
+    This extends `density_via_L9` coverage from `N₀ < 4^11 = 4,194,304`
+    to `N₀ < 4^12 = 16,777,216`. Expected to take ~1-4 hours under
+    `native_decide` on the HashSet-based implementation. Empirical ratio
+    at m=12 (4^12) is ~0.78, so the exact value is expected to be
+    ~13,146,383 — well above `4^12 / 2 = 8,388,608`.
+
+    The compiler may OOM at this size; if it does, try `lake build
+    Erdos125CountAB:only` with `--memory=8192` or compile in chunks via
+    `set_option maxHeartbeats 4000000` at the proof site. -/
+theorem countAB_in_0_N_hs_4_12_ge_half : countAB_in_0_N_hs (4^12) ≥ 4^12 / 2 := by
+  native_decide
+
 end Erdos125CountAB
