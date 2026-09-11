@@ -3,4 +3,4 @@
 mathlib_build/
 lean_project/.lake/
 *.olean
-*.ilean
+*.ilean.lake/
