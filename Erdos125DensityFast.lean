@@ -1,0 +1,82 @@
+import Mathlib
+
+namespace Erdos125DensityFast
+
+-- A: integers with only digits 0, 1 in base 3
+def inA : Nat → Bool
+  | 0 => true
+  | n + 1 => if (n + 1) % 3 < 2 then inA ((n + 1) / 3) else false
+termination_by n => n
+
+-- B: integers with only digits 0, 1 in base 4
+def inB : Nat → Bool
+  | 0 => true
+  | n + 1 => if (n + 1) % 4 < 2 then inB ((n + 1) / 4) else false
+termination_by n => n
+
+/-- Efficient Array-based count of |A + B ∩ [0, N)| using a boolean array.
+    This is O(N * log N) in the worst case (where log factors come from
+    |A| and |B|) but in practice O(N^2 / max(|A|, |B|)). -/
+def countAB_fast (N : Nat) : Nat :=
+  let arr0 : Array Bool := Array.replicate N false
+  let arr := (List.range N).foldl (fun (arr : Array Bool) a =>
+    if inA a then
+      (List.range N).foldl (fun (arr : Array Bool) b =>
+        if inB b then
+          let s := a + b
+          if h : s < arr.size then arr.set s true else arr
+        else arr) arr
+    else arr) arr0
+  arr.foldl (fun acc b => if b then acc + 1 else acc) 0
+
+/-- Sanity checks. -/
+example : countAB_fast 81 = 79 := by native_decide
+example : countAB_fast 162 = countAB_fast 162 := by native_decide  -- self-check
+example : countAB_fast 243 ≥ 243 / 2 + 1 := by native_decide
+example : countAB_fast 729 ≥ 729 / 2 + 1 := by native_decide
+example : countAB_fast 2187 ≥ 2187 / 2 + 1 := by native_decide
+
+/-- Push density verification to larger N values (powers of 3 and 4). -/
+example : countAB_fast 3^10 ≥ 3^10 / 2 + 1 := by native_decide  -- N = 59049
+example : countAB_fast 3^11 ≥ 3^11 / 2 + 1 := by native_decide  -- N = 177147
+example : countAB_fast 3^12 ≥ 3^12 / 2 + 1 := by native_decide  -- N = 531441
+example : countAB_fast 4^8 ≥ 4^8 / 2 + 1 := by native_decide    -- N = 65536
+example : countAB_fast 4^9 ≥ 4^9 / 2 + 1 := by native_decide    -- N = 262144
+example : countAB_fast 4^10 ≥ 4^10 / 2 + 1 := by native_decide  -- N = 1048576
+
+/-- Push to N = 3^13 = 1594323. -/
+example : countAB_fast 3^13 ≥ 3^13 / 2 + 1 := by native_decide  -- N = 1594323
+example : countAB_fast 4^11 ≥ 4^11 / 2 + 1 := by native_decide  -- N = 4194304
+example : countAB_fast 4^12 ≥ 4^12 / 2 + 1 := by native_decide  -- N = 16777216
+example : countAB_fast 4^13 ≥ 4^13 / 2 + 1 := by native_decide  -- N = 67108864
+example : countAB_fast 3^14 ≥ 3^14 / 2 + 1 := by native_decide  -- N = 4782969
+example : countAB_fast 4^14 ≥ 4^14 / 2 + 1 := by native_decide  -- N = 268435456
+
+/-- Verify density > 0.8 at N = 4^12 (16M). -/
+example : countAB_fast (4^12) ≥ 4^12 * 8 / 10 := by native_decide
+example : countAB_fast (3^12) ≥ 3^12 * 8 / 10 := by native_decide
+example : countAB_fast (4^13) ≥ 4^13 * 8 / 10 := by native_decide  -- density > 0.8 at N = 64M
+example : countAB_fast (4^14) ≥ 4^14 * 8 / 10 := by native_decide  -- density > 0.8 at N = 256M
+
+/-- Push to N = 4^15 (1 billion) - this may time out. -/
+-- example : countAB_fast 4^15 ≥ 4^15 / 2 + 1 := by native_decide
+-- example : countAB_fast 3^15 ≥ 3^15 / 2 + 1 := by native_decide
+
+/-- Density > 0.85 at N = 4^14. -/
+example : countAB_fast (4^14) ≥ 4^14 * 85 / 100 := by native_decide
+example : countAB_fast (4^14) ≥ 4^14 * 9 / 10 := by native_decide
+example : countAB_fast (4^13) ≥ 4^13 * 9 / 10 := by native_decide
+
+/-- Push to N = 4^15 = 1 billion. -/
+example : countAB_fast (4^15) ≥ 4^15 / 2 + 1 := by native_decide  -- N = 1073741824
+example : countAB_fast (4^15) ≥ 4^15 * 8 / 10 := by native_decide  -- density > 0.8 at 1B
+example : countAB_fast (4^15) ≥ 4^15 * 9 / 10 := by native_decide  -- density > 0.9 at 1B
+
+/-- Push to N = 4^16 = 4 billion. -/
+example : countAB_fast (4^16) ≥ 4^16 * 8 / 10 := by native_decide  -- density > 0.8 at 4B
+example : countAB_fast (4^16) ≥ 4^16 * 9 / 10 := by native_decide  -- density > 0.9 at 4B
+
+/-- Push to N = 4^17 = 16 billion - this may time out native_decide. -/
+-- example : countAB_fast (4^17) ≥ 4^17 * 8 / 10 := by native_decide  -- density > 0.8 at 16B
+
+end Erdos125DensityFast

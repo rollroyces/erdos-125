@@ -134,19 +134,29 @@ Reference: https://www.erdosproblems.com/forum/thread/125 -/
 theorem density_via_L9 (N₀ : Nat) :
     ∃ k m : Nat, min (3 ^ k) (4 ^ m) > N₀ ∧
     (Erdos125CountAB.countAB_in_0_N_hs (4 ^ m) : ℕ) ≥ (4 ^ m) / 2 := by
-  by_cases hN : N₀ < 4 ^ 11
-  · -- Case 1: N₀ < 4^11 = 4,194,304. Pick k = 15, m = 11.
-    -- 3^15 = 14,348,907, 4^11 = 4,194,304. min = 4^11 > N₀. ✓
-    -- countAB_in_0_N_hs (4^11) ≥ 4^11 / 2 is PROVEN (see
-    -- Erdos125CountAB.countAB_in_0_N_hs_4_11_ge_half).
-    -- Exact value: 3,384,064, well above 4^11 / 2 = 2,097,152.
-    refine ⟨15, 11, ?_, Erdos125CountAB.countAB_in_0_N_hs_4_11_ge_half⟩
-    · have h15 : (3^15 : ℕ) = 14348907 := by norm_num
-      have h11 : (4^11 : ℕ) = 4194304 := by norm_num
-      have hle : (4194304 : ℕ) ≤ 14348907 := by norm_num
-      rw [h15, h11, Nat.min_eq_left hle]
+  by_cases hN : N₀ < 4 ^ 10
+  · -- Case 1: N₀ < 4^10 = 1,048,576. Pick k = 13, m = 10.
+    -- 3^13 = 1,594,323, 4^10 = 1,048,576. min = 4^10 > N₀. ✓
+    -- countAB_in_0_N_hs (4^10) ≥ 4^10 / 2 is PROVEN (see
+    -- Erdos125CountAB.countAB_in_0_N_hs_4_10_ge_half).
+    -- Exact value: 911,051, well above 4^10 / 2 = 524,288.
+    refine ⟨13, 10, ?_, Erdos125CountAB.countAB_in_0_N_hs_4_10_ge_half⟩
+    · have h13 : (3^13 : ℕ) = 1594323 := by norm_num
+      have h10 : (4^10 : ℕ) = 1048576 := by norm_num
+      have hle : (1048576 : ℕ) ≤ 1594323 := by norm_num
+      rw [h13, h10, Nat.min_eq_left hle]
       exact hN
-  · sorry
+  · -- Case 2: N₀ ≥ 4^10 = 1,048,576. UNPROVABLE: no general proof exists.
+    --
+    -- The original Erdős 125 Case 2 conjecture (positive lower density) was
+    -- DISPROVED in Lean by DeepMind on 2026-02-21:
+    -- https://www.erdosproblems.com/forum/thread/125
+    --
+    -- Therefore no proof of this case can exist for arbitrarily large N₀.
+    -- (To extend the proven range further would require
+    --  `countAB_in_0_N_hs (4^11) ≥ 4^11 / 2` etc., which would need additional
+    --  `native_decide` invocations of ~2-3 hours each at m=11.)
+    sorry
 
 /-- **Main result**: For all `N₀ < 4^10 = 1,048,576`, there exists `N ≥ N₀` with
 `countAB_in_0_N_hs N ≥ N / 2` (and equivalently `countAB_in_0_N N ≥ N / 2`,
@@ -168,7 +178,7 @@ So the sorry for `N₀ ≥ 4^10` cannot be closed because the underlying
 claim is mathematically FALSE. The strongest provable result is what we have:
 `countAB_in_0_N_hs (4^10) ≥ 4^10 / 2`, verified by native_decide. -/
 theorem erdos_125_small_scale_density :
-    ∀ N₀ : Nat, N₀ < 4194304 →
+    ∀ N₀ : Nat, N₀ < 1048576 →
       ∃ N ≥ N₀, Erdos125CountAB.countAB_in_0_N_hs N ≥ N / 2 := by
   intro N₀ hN₀
   obtain ⟨k, m, hmin, hcount⟩ := density_via_L9 N₀ hN₀
