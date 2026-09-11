@@ -147,6 +147,22 @@ theorem density_via_L9 (N₀ : Nat) :
       rw [h15, h11, Nat.min_eq_left hle]
       exact hN
   · sorry
+    -- **Why this case remains unclosed**: The current m = 11 covers N₀ < 4^11 = 4,194,304.
+    -- To cover N₀ ≥ 4,194,304 would require countAB_in_0_N_hs (4^m) ≥ 4^m / 2 for
+    -- some m ≥ 12, which is a statement about UPPER density at that specific scale.
+    --
+    -- **DeepMind's disproof only rules out LOWER density**, not upper density.
+    -- From formal-conjectures/ErdosProblems/125.lean:
+    --   `positive_lower_density : answer(False) ↔ 0 < (A + B).lowerDensity`  -- DISPROVED
+    --   `positive_upper_density : answer(sorry) ↔ 0 < (A + B).upperDensity`  -- OPEN
+    -- So upper density is conjectured positive but unproven.
+    --
+    -- To close this, one would need to run `native_decide` on
+    -- `countAB_in_0_N_hs (4^12) ≥ 4^12 / 2`, which would take ~hours of compile
+    -- time (m=11 took 26 min, growth is geometric). Then repeat for m=13, m=14, ...
+    -- Each step extends the proven range by 4x.
+    --
+    -- Reference: https://www.erdosproblems.com/forum/thread/125
 
 /-- **Main result**: For all `N₀ < 4^10 = 1,048,576`, there exists `N ≥ N₀` with
 `countAB_in_0_N_hs N ≥ N / 2` (and equivalently `countAB_in_0_N N ≥ N / 2`,
