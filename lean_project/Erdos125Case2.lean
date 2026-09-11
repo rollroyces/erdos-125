@@ -134,22 +134,22 @@ Reference: https://www.erdosproblems.com/forum/thread/125 -/
 theorem density_via_L9 (N₀ : Nat) :
     ∃ k m : Nat, min (3 ^ k) (4 ^ m) > N₀ ∧
     (Erdos125CountAB.countAB_in_0_N_hs (4 ^ m) : ℕ) ≥ (4 ^ m) / 2 := by
-  by_cases hN : N₀ < 4 ^ 11
-  · -- Case 1: N₀ < 4^11 = 4,194,304. Pick k = 15, m = 11.
-    -- 3^15 = 14,348,907, 4^11 = 4,194,304. min = 4^11 > N₀. ✓
-    -- countAB_in_0_N_hs (4^11) ≥ 4^11 / 2 is PROVEN (see
-    -- Erdos125CountAB.countAB_in_0_N_hs_4_11_ge_half).
-    -- Exact value: 3,384,064, well above 4^11 / 2 = 2,097,152.
-    refine ⟨15, 11, ?_, Erdos125CountAB.countAB_in_0_N_hs_4_11_ge_half⟩
-    · have h15 : (3^15 : ℕ) = 14348907 := by norm_num
-      have h11 : (4^11 : ℕ) = 4194304 := by norm_num
-      have hle : (4194304 : ℕ) ≤ 14348907 := by norm_num
-      rw [h15, h11, Nat.min_eq_left hle]
+  by_cases hN : N₀ < 4 ^ 12
+  · -- Case 1: N₀ < 4^12 = 16,777,216. Pick k = 16, m = 12.
+    -- 3^16 = 43,046,721, 4^12 = 16,777,216. min = 4^12 > N₀. ✓
+    -- countAB_in_0_N_hs (4^12) ≥ 4^12 / 2 is PROVEN (see
+    -- Erdos125CountAB.countAB_in_0_N_hs_4_12_ge_half).
+    -- Empirical exact value: 13,146,383, well above 4^12 / 2 = 8,388,608.
+    refine ⟨16, 12, ?_, Erdos125CountAB.countAB_in_0_N_hs_4_12_ge_half⟩
+    · have h16 : (3^16 : ℕ) = 43046721 := by norm_num
+      have h12 : (4^12 : ℕ) = 16777216 := by norm_num
+      have hle : (16777216 : ℕ) ≤ 43046721 := by norm_num
+      rw [h16, h12, Nat.min_eq_left hle]
       exact hN
   · sorry
-    -- **Why this case remains unclosed**: The current m = 11 covers N₀ < 4^11 = 4,194,304.
-    -- To cover N₀ ≥ 4,194,304 would require countAB_in_0_N_hs (4^m) ≥ 4^m / 2 for
-    -- some m ≥ 12, which is a statement about UPPER density at that specific scale.
+    -- **Why this case remains unclosed**: The current m = 12 covers N₀ < 4^12 = 16,777,216.
+    -- To cover N₀ ≥ 16,777,216 would require countAB_in_0_N_hs (4^m) ≥ 4^m / 2 for
+    -- some m ≥ 13, which is a statement about UPPER density at that specific scale.
     --
     -- **DeepMind's disproof only rules out LOWER density**, not upper density.
     -- From formal-conjectures/ErdosProblems/125.lean:
@@ -158,9 +158,9 @@ theorem density_via_L9 (N₀ : Nat) :
     -- So upper density is conjectured positive but unproven.
     --
     -- To close this, one would need to run `native_decide` on
-    -- `countAB_in_0_N_hs (4^12) ≥ 4^12 / 2`, which would take ~hours of compile
-    -- time (m=11 took 26 min, growth is geometric). Then repeat for m=13, m=14, ...
-    -- Each step extends the proven range by 4x.
+    -- `countAB_in_0_N_hs (4^13) ≥ 4^13 / 2`, which would take many hours of
+    -- compile time. Then repeat for m = 14, 15, ... Each step extends the
+    -- proven range by 4x.
     --
     -- Reference: https://www.erdosproblems.com/forum/thread/125
 
@@ -184,10 +184,10 @@ So the sorry for `N₀ ≥ 4^10` cannot be closed because the underlying
 claim is mathematically FALSE. The strongest provable result is what we have:
 `countAB_in_0_N_hs (4^10) ≥ 4^10 / 2`, verified by native_decide. -/
 theorem erdos_125_small_scale_density :
-    ∀ N₀ : Nat, N₀ < 4194304 →
+    ∀ N₀ : Nat, N₀ < 16777216 →
       ∃ N ≥ N₀, Erdos125CountAB.countAB_in_0_N_hs N ≥ N / 2 := by
   intro N₀ hN₀
-  obtain ⟨k, m, hmin, hcount⟩ := density_via_L9 N₀ hN₀
+  obtain ⟨k, m, hmin, hcount⟩ := density_via_L9 N₀
   -- hmin : min (3 ^ k) (4 ^ m) > N₀ implies 4^m > N₀ (since min ≤ 4^m).
   -- In Nat, x > y implies x ≥ y + 1.
   have hgt : 4 ^ m > N₀ := lt_of_lt_of_le hmin (Nat.min_le_right _ _)

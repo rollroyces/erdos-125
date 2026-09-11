@@ -144,4 +144,14 @@ theorem countAB_in_0_N_hs_4_11_ge_half : countAB_in_0_N_hs (4^11) ≥ 4^11 / 2 :
 theorem countAB_in_0_N_hs_4_12_ge_half : countAB_in_0_N_hs (4^12) ≥ 4^12 / 2 := by
   native_decide
 
+/-- **MAIN RESULT**: `countAB_in_0_N_hs (4^13) ≥ 4^13 / 2`.
+
+    This extends `density_via_L9` coverage from `N₀ < 4^12 = 16,777,216`
+    to `N₀ < 4^13 = 67,108,864`. Expected to take many hours under
+    `native_decide` on the HashSet-based implementation. Empirical ratio
+    at m=13 (4^13) is ~0.84, so the exact value is expected to be
+    ~56,249,631 — well above `4^13 / 2 = 33,554,432`. -/
+theorem countAB_in_0_N_hs_4_13_ge_half : countAB_in_0_N_hs (4^13) ≥ 4^13 / 2 := by
+  native_decide
+
 end Erdos125CountAB
