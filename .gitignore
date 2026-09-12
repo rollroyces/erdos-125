@@ -4,3 +4,7 @@ mathlib_build/
 lean_project/.lake/
 *.olean
 *.ilean.lake/
+
+# Runtime logs from density verifier
+erdos_m*.log
+results/*.log
