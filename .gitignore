@@ -8,3 +8,4 @@ lean_project/.lake/
 # Runtime logs from density verifier
 erdos_m*.log
 results/*.log
+code/__pycache__/

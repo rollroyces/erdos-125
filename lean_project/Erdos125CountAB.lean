@@ -154,4 +154,20 @@ theorem countAB_in_0_N_hs_4_12_ge_half : countAB_in_0_N_hs (4^12) ≥ 4^12 / 2 :
 theorem countAB_in_0_N_hs_4_13_ge_half : countAB_in_0_N_hs (4^13) ≥ 4^13 / 2 := by
   native_decide
 
+/-- **EMPIRICAL DIP (m=14)**: `countAB_in_0_N_hs (4^14) = 235146374`.
+
+    Exact value of the count at N = 4^14 = 268,435,456. This pins down
+    the empirical observation that at this scale the density is 0.8760
+    — well above 1/2 but below the higher scale (m=15). -/
+theorem countAB_in_0_N_hs_4_14_eq : countAB_in_0_N_hs (4^14) = 235146374 := by
+  native_decide
+
+/-- **EMPIRICAL DIP (m=14)**: density at N = 4^14 is between 0.87 and 0.88.
+
+    `countAB * 100 < 4^14 * 88` and `countAB * 100 > 4^14 * 87`. -/
+theorem countAB_in_0_N_hs_4_14_density_band :
+    countAB_in_0_N_hs (4^14) * 100 > (4^14) * 87 ∧
+    countAB_in_0_N_hs (4^14) * 100 < (4^14) * 88 := by
+  native_decide
+
 end Erdos125CountAB
