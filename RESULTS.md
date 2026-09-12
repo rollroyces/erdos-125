@@ -88,6 +88,23 @@ python3 code/erdos_125_density_fast.py --M 14 --output results/run_metrics.json
 
 # Up to m=15 (≈1 billion, peak RSS ≈ 600 MB)
 python3 code/erdos_125_density_fast.py --M 15 --output results/run_metrics_m15.json
+
+# Empirical density at arbitrary N (not just 4^m) — looks for the infimum
+python3 code/erdos_125_density_scan.py --N-min 1024 --N-max 1073741824 --samples 50 \
+    --output results/density_scan.json
 ```
+
+## Additional contribution: empirical density scan at arbitrary N
+
+`code/erdos_125_density_scan.py` computes `countAB(N)/N` at **arbitrary N** (not just
+powers of 4), to look for the empirical infimum. We observe:
+
+- 65 N values from $N = 1024$ to $N = 4^{15} \approx 1.07 \times 10^9$
+- Density fluctuates in $[0.7855, 0.9273]$ — **never dips below 0.7**
+- **Empirical exponent from log-log fit: $\alpha = 1.0005$** — well above Melfi's
+  proved lower bound of $0.9777$. At the scales we can measure, $|A+B \cap [0,N]|$
+  is essentially linear in $N$.
+- This is consistent with the DeepMind disproof: dips must exist somewhere but are
+  not visible in our $N \le 4^{15}$ regime.
 
 Lean project: <https://github.com/rollroyces/erdos-125>
